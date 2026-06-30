@@ -291,6 +291,8 @@ export async function createProductAction(formData: FormData) {
   const parsed = productSchema.parse(Object.fromEntries(formData));
   const { data: seller } = await supabase.from("sellers").select("*").eq("user_id", user.id).maybeSingle();
   if (!seller) redirect("/seller/register");
+  if (seller.seller_status === "suspended" || seller.seller_status === "banned") redirect("/account-restricted");
+  if (!seller.verified || seller.seller_status !== "active" || seller.verification_status !== "approved") redirect("/seller/pending");
   const image = fileFromForm(formData, "product_image");
   const uploaded = image ? await uploadFile("product-images", user.id, image, "products", true) : { path: null, url: null };
   const { data: product, error } = await supabase.from("products").insert({
@@ -501,9 +503,23 @@ export async function approveSellerAction(formData: FormData) {
 export async function rejectSellerAction(formData: FormData) {
   const { supabase, user } = await requireRole(["admin", "operations"]);
   const sellerId = value(formData, "seller_id");
-  const reason = value(formData, "reason") || "Application needs more information.";
+  const reason = value(formData, "reason") || "Application rejected after verification review.";
   await supabase.from("sellers").update({ verification_status: "rejected", rejected_at: new Date().toISOString(), rejected_by: user.id, rejection_reason: reason }).eq("id", sellerId);
   await supabase.from("admin_audit_logs").insert({ actor_id: user.id, action: "reject_seller", entity_type: "sellers", entity_id: sellerId, notes: reason });
+  revalidatePath("/admin/verification");
+}
+
+export async function requestMoreInfoAction(formData: FormData) {
+  const { supabase, user } = await requireRole(["admin", "operations"]);
+  const sellerId = value(formData, "seller_id");
+  const reason = value(formData, "reason") || "Please upload clearer documents or confirm your shop and M-PESA details.";
+  await supabase.from("sellers").update({
+    verified: false,
+    seller_status: "pending",
+    verification_status: "needs_more_info",
+    rejection_reason: reason
+  }).eq("id", sellerId);
+  await supabase.from("admin_audit_logs").insert({ actor_id: user.id, action: "request_seller_more_info", entity_type: "sellers", entity_id: sellerId, notes: reason });
   revalidatePath("/admin/verification");
 }
 

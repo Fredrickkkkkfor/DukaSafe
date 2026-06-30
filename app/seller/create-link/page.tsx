@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Copy, MessageCircle, PackagePlus } from "lucide-react";
 import { createProductAction } from "@/lib/actions";
 import { getSellerWorkspace } from "@/lib/data";
-import { Button, Card, Input, LinkButton, Select, Textarea, TrustBadge } from "@/components/ui";
+import { ActionPanel, Button, Card, Input, LinkButton, Select, Textarea, TrustBadge, formatStatus } from "@/components/ui";
 import { SellerShell } from "@/components/shells";
 
 export const metadata: Metadata = { title: "Create Protected Link", description: "Create a DukaSafe protected product checkout link." };
@@ -10,6 +10,7 @@ export const metadata: Metadata = { title: "Create Protected Link", description:
 export default async function CreateLinkPage({ searchParams }: { searchParams: Promise<{ created?: string }> }) {
   const query = await searchParams;
   const { seller, products } = await getSellerWorkspace();
+  const canCreateLinks = Boolean(seller?.verified && seller.seller_status === "active" && seller.verification_status === "approved");
   return (
     <SellerShell>
       <div className="grid gap-5 lg:grid-cols-[1fr_0.72fr]">
@@ -17,7 +18,21 @@ export default async function CreateLinkPage({ searchParams }: { searchParams: P
           <h1 className="text-4xl font-black text-forest">Create a protected order link</h1>
           <p className="mt-2 text-charcoal/70">Share this link on TikTok, WhatsApp, or Instagram instead of posting a raw M-PESA number.</p>
           {!seller ? (
-            <div className="mt-5 rounded-3xl bg-sand p-5"><p className="font-bold text-forest">Complete seller verification before creating protected links.</p><LinkButton href="/seller/register" className="mt-4">Verify My Shop</LinkButton></div>
+            <ActionPanel
+              title="Verification required"
+              body="Create your seller profile and submit documents before DukaSafe can issue protected checkout links for buyers."
+              action={<LinkButton href="/seller/register">Verify My Shop</LinkButton>}
+              tone="gold"
+            />
+          ) : !canCreateLinks ? (
+            <ActionPanel
+              title={`Checkout links locked: ${formatStatus(seller.verification_status)}`}
+              body={seller.verification_status === "needs_more_info"
+                ? "Operations needs more details before your shop can sell through DukaSafe. Update your application and resubmit it for review."
+                : "Protected checkout links become available after DukaSafe approves your seller verification and activates your shop."}
+              action={<LinkButton href={seller.verification_status === "needs_more_info" || seller.verification_status === "rejected" ? "/seller/register" : "/seller/pending"} variant="secondary">Review verification status</LinkButton>}
+              tone={seller.verification_status === "rejected" ? "red" : "gold"}
+            />
           ) : (
             <form action={createProductAction} className="mt-6 grid gap-4 md:grid-cols-2">
               <Input label="Product name" name="name" defaultValue="White tulle set" required />

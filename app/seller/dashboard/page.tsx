@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { AlertTriangle, BadgeCheck, PackagePlus, ShoppingBag, Star } from "lucide-react";
 import { getSellerWorkspace } from "@/lib/data";
-import { Badge, Card, DataTable, EmptyState, LinkButton, MetricCard, StatusBadge, TrustBadge, formatStatus } from "@/components/ui";
+import { ActionPanel, Badge, Card, DataTable, EmptyState, LinkButton, MetricCard, StatusBadge, TrustBadge, formatStatus } from "@/components/ui";
 import { SellerShell } from "@/components/shells";
 
 export const metadata: Metadata = { title: "Seller Dashboard", description: "Manage DukaSafe orders, product links, disputes, and trust score." };
@@ -11,6 +11,7 @@ export default async function SellerDashboardPage() {
   if (!seller) {
     return <SellerShell><EmptyState title="Seller profile not found" body="Submit your seller verification application before managing protected order links." action={<LinkButton href="/seller/register">Verify My Shop</LinkButton>} /></SellerShell>;
   }
+  const canCreateLinks = Boolean(seller.verified && seller.seller_status === "active" && seller.verification_status === "approved");
   return (
     <SellerShell>
       <div className="space-y-5">
@@ -22,9 +23,25 @@ export default async function SellerDashboardPage() {
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
             <LinkButton href="/seller/orders" variant="secondary">View Orders</LinkButton>
-            <LinkButton href="/seller/create-link"><PackagePlus className="h-4 w-4" /> Create protected link</LinkButton>
+            {canCreateLinks ? (
+              <LinkButton href="/seller/create-link"><PackagePlus className="h-4 w-4" /> Create protected link</LinkButton>
+            ) : (
+              <LinkButton href={seller.verification_status === "needs_more_info" || seller.verification_status === "rejected" ? "/seller/register" : "/seller/pending"} variant="secondary">Verification status</LinkButton>
+            )}
           </div>
         </Card>
+        {!canCreateLinks && (
+          <ActionPanel
+            title={`Seller verification: ${formatStatus(seller.verification_status)}`}
+            body={seller.verification_status === "needs_more_info"
+              ? "DukaSafe operations needs more information before this shop can receive protected checkout links. Update your application to continue review."
+              : seller.verification_status === "rejected"
+                ? "This application was not approved. Review the reason, correct the application, and resubmit if the shop is eligible."
+                : "Your dashboard is available for visibility, but checkout link creation is locked until the shop is approved and active."}
+            action={<LinkButton href={seller.verification_status === "needs_more_info" || seller.verification_status === "rejected" ? "/seller/register" : "/seller/pending"} variant="secondary">Open verification</LinkButton>}
+            tone={seller.verification_status === "rejected" ? "red" : "gold"}
+          />
+        )}
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <MetricCard label="Trust score" value={Math.round(Number(seller.trust_score || 0))} icon={<BadgeCheck className="h-5 w-5" />} />
           <MetricCard label="Completed" value={seller.completed_orders_count || 0} icon={<ShoppingBag className="h-5 w-5" />} />
@@ -46,7 +63,7 @@ export default async function SellerDashboardPage() {
           <Card>
             <h2 className="text-2xl font-black text-forest">Product links</h2>
             <div className="mt-4 grid gap-3">
-              {products.length ? products.map((product: { id: string; name: string; price: number; status: string }) => <div key={product.id} className="flex items-center justify-between gap-3 rounded-2xl bg-white/70 p-3"><div><p className="font-black text-forest">{product.name}</p><p className="text-sm text-charcoal/60">KSh {Number(product.price).toLocaleString()}</p></div><StatusBadge status={product.status} /></div>) : <EmptyState title="No product links" body="Create your first protected checkout link." action={<LinkButton href="/seller/create-link">Create link</LinkButton>} />}
+              {products.length ? products.map((product: { id: string; name: string; price: number; status: string }) => <div key={product.id} className="flex items-center justify-between gap-3 rounded-2xl bg-white/70 p-3"><div><p className="font-black text-forest">{product.name}</p><p className="text-sm text-charcoal/60">KSh {Number(product.price).toLocaleString()}</p></div><StatusBadge status={product.status} /></div>) : <EmptyState title="No product links" body={canCreateLinks ? "Create your first protected checkout link." : "Product links unlock when your shop is approved."} action={canCreateLinks ? <LinkButton href="/seller/create-link">Create link</LinkButton> : undefined} />}
             </div>
           </Card>
           <Card>
