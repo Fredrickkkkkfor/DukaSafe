@@ -175,7 +175,10 @@ export async function sendPhoneOtpAction(formData: FormData) {
   const role = value(formData, "role") === "seller" ? "seller" : "buyer";
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.signInWithOtp({ phone });
-  if (error) redirect(`/${mode === "signup" ? "signup" : "login"}?error=${encodeURIComponent(error.message)}&next=${encodeURIComponent(next)}`);
+  if (error) {
+    const message = error.message.toLowerCase().includes("unsupported phone provider") ? "phone-auth-unavailable" : error.message;
+    redirect(`/${mode === "signup" ? "signup" : "login"}?error=${encodeURIComponent(message)}&next=${encodeURIComponent(next)}`);
+  }
   redirect(`/verify-otp?phone=${encodeURIComponent(phone)}&next=${encodeURIComponent(next)}&mode=${encodeURIComponent(mode)}&role=${encodeURIComponent(role)}`);
 }
 

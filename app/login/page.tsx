@@ -7,6 +7,7 @@ export const metadata: Metadata = { title: "Login", description: "Sign in to you
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string; error?: string }> }) {
   const query = await searchParams;
+  const phoneUnavailable = query.error === "phone-auth-unavailable";
   return (
     <>
       <PublicHeader />
@@ -15,7 +16,11 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <Badge tone="gold">Secure sign in</Badge>
           <h1 className="mt-4 text-3xl font-black text-forest">Welcome back</h1>
           <p className="mt-2 text-sm text-charcoal/65">We use your account to protect orders, evidence, and disputes.</p>
-          {query.error && <p className="mt-4 rounded-2xl bg-red-50 p-3 text-sm font-bold text-red-700">{query.error}</p>}
+          {query.error && (
+            <p className={`mt-4 rounded-2xl p-3 text-sm font-bold ${phoneUnavailable ? "bg-amber/15 text-forest" : "bg-red-50 text-red-700"}`}>
+              {authErrorMessage(query.error)}
+            </p>
+          )}
           <form action={sendPhoneOtpAction} className="mt-6 grid gap-4 rounded-3xl bg-sand p-4">
             <input type="hidden" name="next" value={query.next || ""} />
             <input type="hidden" name="mode" value="login" />
@@ -38,4 +43,12 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       </PageShell>
     </>
   );
+}
+
+function authErrorMessage(error: string) {
+  const messages: Record<string, string> = {
+    "phone-auth-unavailable": "Phone sign-in is not enabled yet. Use email below to continue safely.",
+    "missing-supabase-env": "Supabase environment variables are missing. Add them before signing in."
+  };
+  return messages[error] || error;
 }
