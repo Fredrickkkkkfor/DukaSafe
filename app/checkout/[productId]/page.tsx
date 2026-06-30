@@ -53,8 +53,11 @@ export default async function CheckoutPage({ params }: { params: Promise<{ produ
             />
           ) : needsAuth ? (
             <div className="mt-6 rounded-3xl bg-sand p-5">
-              <p className="font-bold text-forest">Create a buyer account to place this protected order.</p>
-              <a href={`/signup?next=/checkout/${product.id}`} className="mt-4 inline-flex rounded-2xl bg-forest px-5 py-3 font-bold text-white">Create account</a>
+              <p className="font-bold text-forest">Create a free DukaSafe account to track this order and access protection.</p>
+              <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                <a href={`/signup?next=/checkout/${product.id}`} className="inline-flex rounded-2xl bg-forest px-5 py-3 font-bold text-white">Create account</a>
+                <a href={`/login?next=/checkout/${product.id}`} className="inline-flex rounded-2xl border border-forest/15 bg-white px-5 py-3 font-bold text-forest">Login</a>
+              </div>
             </div>
           ) : (
             <form action={createOrderAction} className="mt-6 grid gap-4 md:grid-cols-2">

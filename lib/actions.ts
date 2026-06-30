@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { isSupabaseConfigured, requireSupabaseConfig } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getRoleHome } from "@/lib/data";
 
 const phoneSchema = z.string().regex(/^\+?[0-9]{7,15}$/, "Use a valid phone number with country code");
 const moneySchema = z.coerce.number().min(0);
@@ -71,6 +72,14 @@ const reviewSchema = z.object({
   is_public: z.string().optional()
 });
 
+const profileSchema = z.object({
+  full_name: z.string().min(2),
+  phone: phoneSchema.optional().or(z.literal("")),
+  preferred_language: z.string().min(2),
+  default_location: z.string().optional(),
+  role: z.enum(["buyer", "seller"])
+});
+
 function value(formData: FormData, key: string) {
   const v = formData.get(key);
   return typeof v === "string" ? v.trim() : "";
@@ -127,8 +136,8 @@ export async function signUpAction(formData: FormData) {
   const email = value(formData, "email");
   const password = value(formData, "password");
   const fullName = value(formData, "full_name");
-  const role = value(formData, "role") || "buyer";
-  const next = value(formData, "next") || (role === "seller" ? "/seller/register" : "/check");
+  const role = value(formData, "role") === "seller" ? "seller" : "buyer";
+  const next = value(formData, "next") || (role === "seller" ? "/seller/register" : "/orders");
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -151,10 +160,60 @@ export async function signInAction(formData: FormData) {
   if (next) redirect(next);
   const { data: { user } } = await supabase.auth.getUser();
   if (user) {
-    const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
-    if (profile?.role === "admin" || profile?.role === "operations") redirect("/admin/verification");
-    if (profile?.role === "seller") redirect("/seller/dashboard");
+    const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
+    redirect(await getRoleHome(profile, user.id));
   }
+  redirect("/orders");
+}
+
+export async function sendPhoneOtpAction(formData: FormData) {
+  if (!isSupabaseConfigured) redirect("/login?error=missing-supabase-env");
+  const phone = phoneSchema.parse(value(formData, "phone"));
+  const next = value(formData, "next");
+  const mode = value(formData, "mode") || "login";
+  const role = value(formData, "role") === "seller" ? "seller" : "buyer";
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.auth.signInWithOtp({ phone });
+  if (error) redirect(`/${mode === "signup" ? "signup" : "login"}?error=${encodeURIComponent(error.message)}&next=${encodeURIComponent(next)}`);
+  redirect(`/verify-otp?phone=${encodeURIComponent(phone)}&next=${encodeURIComponent(next)}&mode=${encodeURIComponent(mode)}&role=${encodeURIComponent(role)}`);
+}
+
+export async function verifyOtpAction(formData: FormData) {
+  if (!isSupabaseConfigured) redirect("/verify-otp?error=missing-supabase-env");
+  const phone = phoneSchema.parse(value(formData, "phone"));
+  const token = value(formData, "token").replace(/\s/g, "");
+  const next = value(formData, "next");
+  const mode = value(formData, "mode") || "login";
+  if (!/^\d{6}$/.test(token)) redirect(`/verify-otp?phone=${encodeURIComponent(phone)}&next=${encodeURIComponent(next)}&mode=${encodeURIComponent(mode)}&error=Enter a valid six-digit code`);
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.auth.verifyOtp({ phone, token, type: "sms" });
+  if (error) redirect(`/verify-otp?phone=${encodeURIComponent(phone)}&next=${encodeURIComponent(next)}&mode=${encodeURIComponent(mode)}&error=${encodeURIComponent(error.message)}`);
+  if (data.user && mode === "signup") {
+    const requestedRole = value(formData, "role") === "seller" ? "seller" : "buyer";
+    await supabase.from("profiles").update({ role: requestedRole, phone, onboarding_completed: false }).eq("id", data.user.id);
+  }
+  if (next) redirect(next);
+  if (data.user) {
+    const { data: profile } = await supabase.from("profiles").select("*").eq("id", data.user.id).maybeSingle();
+    redirect(await getRoleHome(profile, data.user.id));
+  }
+  redirect("/complete-profile");
+}
+
+export async function completeProfileAction(formData: FormData) {
+  const { supabase, user } = await requireUser();
+  const parsed = profileSchema.parse(Object.fromEntries(formData));
+  const current = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+  const role = current.data?.role === "admin" || current.data?.role === "operations" ? current.data.role : parsed.role;
+  await supabase.from("profiles").update({
+    full_name: parsed.full_name,
+    phone: parsed.phone || null,
+    preferred_language: parsed.preferred_language,
+    default_location: parsed.default_location || null,
+    role,
+    onboarding_completed: true
+  }).eq("id", user.id);
+  if (role === "seller") redirect("/seller/register");
   redirect("/orders");
 }
 

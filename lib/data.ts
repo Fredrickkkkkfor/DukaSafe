@@ -11,6 +11,23 @@ export async function getCurrentUserAndProfile() {
   return { user, profile };
 }
 
+export async function getRoleHome(profile: { role?: string; is_active?: boolean } | null, userId?: string) {
+  if (!profile) return "/complete-profile";
+  if (profile.is_active === false) return "/account-restricted";
+  if (profile.role === "admin" || profile.role === "operations") return "/admin/verification";
+  if (profile.role === "seller" && isSupabaseConfigured && userId) {
+    const supabase = await createSupabaseServerClient();
+    const { data: seller } = await supabase.from("sellers").select("verification_status,seller_status").eq("user_id", userId).maybeSingle();
+    if (!seller) return "/seller/register";
+    if (seller.seller_status === "suspended" || seller.seller_status === "banned") return "/account-restricted";
+    if (seller.verification_status === "approved" && seller.seller_status === "active") return "/seller/dashboard";
+    if (seller.verification_status === "needs_more_info" || seller.verification_status === "rejected") return "/seller/register";
+    return "/seller/pending";
+  }
+  if (profile.role === "seller") return "/seller/dashboard";
+  return "/orders";
+}
+
 export async function getSellerBySlug(slug: string) {
   if (slug === demoSeller.slug || !isSupabaseConfigured) return { seller: demoSeller, products: demoProducts, reviews: demoReviews };
   const supabase = await createSupabaseServerClient();

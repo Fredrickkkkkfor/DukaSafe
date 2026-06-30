@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { signUpAction } from "@/lib/actions";
-import { Button, Card, Input, Select } from "@/components/ui";
+import { sendPhoneOtpAction, signUpAction } from "@/lib/actions";
+import { Badge, Button, Card, Input, LinkButton } from "@/components/ui";
 import { PageShell, PublicHeader } from "@/components/shells";
 
 export const metadata: Metadata = { title: "Create Account", description: "Create a DukaSafe buyer, seller, or operations account." };
@@ -12,21 +12,38 @@ export default async function SignupPage({ searchParams }: { searchParams: Promi
       <PublicHeader />
       <PageShell className="grid place-items-center">
         <Card className="w-full max-w-md">
-          <h1 className="text-3xl font-black text-forest">Create your account</h1>
-          <p className="mt-2 text-sm text-charcoal/65">Use buyer checkout, submit seller verification, or access operations tools.</p>
+          <Badge tone="gold">Protected account</Badge>
+          <h1 className="mt-4 text-3xl font-black text-forest">Create your DukaSafe account</h1>
+          <p className="mt-2 text-sm text-charcoal/65">Choose how you want to use DukaSafe. Admin roles are assigned privately by operations.</p>
           {query.error && <p className="mt-4 rounded-2xl bg-red-50 p-3 text-sm font-bold text-red-700">{query.error}</p>}
-          <form action={signUpAction} className="mt-6 grid gap-4">
+          <form action={sendPhoneOtpAction} className="mt-6 grid gap-4 rounded-3xl bg-sand p-4">
             <input type="hidden" name="next" value={query.next || ""} />
+            <input type="hidden" name="mode" value="signup" />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="cursor-pointer rounded-3xl bg-white/75 p-4 ring-1 ring-forest/10">
+                <input className="sr-only peer" type="radio" name="role" value="buyer" defaultChecked />
+                <span className="block text-lg font-black text-forest peer-checked:text-amber">I am buying safely</span>
+                <span className="mt-1 block text-xs text-charcoal/60">Track orders, payment proof, delivery, and disputes.</span>
+              </label>
+              <label className="cursor-pointer rounded-3xl bg-white/75 p-4 ring-1 ring-forest/10">
+                <input className="sr-only peer" type="radio" name="role" value="seller" />
+                <span className="block text-lg font-black text-forest peer-checked:text-amber">I want to verify my shop</span>
+                <span className="mt-1 block text-xs text-charcoal/60">Submit ID, shop proof, M-PESA details, and socials.</span>
+              </label>
+            </div>
+            <Input label="Phone number" name="phone" placeholder="+254..." required />
+            <Button type="submit">Send secure code</Button>
+          </form>
+          <div className="my-5 flex items-center gap-3 text-xs font-bold uppercase text-sage"><span className="h-px flex-1 bg-forest/10" /> Email fallback <span className="h-px flex-1 bg-forest/10" /></div>
+          <form action={signUpAction} className="grid gap-4">
+            <input type="hidden" name="next" value={query.next || ""} />
+            <input type="hidden" name="role" value="buyer" />
             <Input label="Full name" name="full_name" required />
             <Input label="Email" name="email" type="email" required />
             <Input label="Password" name="password" type="password" required minLength={6} />
-            <Select label="Account type" name="role" defaultValue="buyer">
-              <option value="buyer">Buyer</option>
-              <option value="seller">Seller</option>
-              <option value="operations">Operations</option>
-            </Select>
-            <Button type="submit">Create account</Button>
+            <Button type="submit">Create Buyer Account</Button>
           </form>
+          <p className="mt-5 text-sm text-charcoal/65">Already have an account? <LinkButton href="/login" variant="ghost" className="min-h-0 px-1 py-0">Sign in</LinkButton></p>
         </Card>
       </PageShell>
     </>

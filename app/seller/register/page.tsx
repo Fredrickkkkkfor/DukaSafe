@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { FileCheck2, Link2, Phone, ShieldCheck, Store } from "lucide-react";
 import { registerSellerAction } from "@/lib/actions";
+import { getCurrentUserAndProfile } from "@/lib/data";
 import { Button, Card, Input, Select, Stepper, Textarea } from "@/components/ui";
 import { PageShell, PublicHeader } from "@/components/shells";
 
 export const metadata: Metadata = { title: "Seller Registration", description: "Apply for DukaSafe seller verification." };
 
-export default function SellerRegisterPage() {
+export default async function SellerRegisterPage() {
+  const { user } = await getCurrentUserAndProfile();
+  if (!user) redirect("/signup?next=/seller/register");
   return (
     <>
       <PublicHeader />

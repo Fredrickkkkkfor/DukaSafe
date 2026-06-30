@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { raiseDisputeAction } from "@/lib/actions";
-import { getOrderByCode } from "@/lib/data";
+import { getCurrentUserAndProfile, getOrderByCode } from "@/lib/data";
 import { Button, Card, Input, Select, Textarea } from "@/components/ui";
 import { PageShell, PublicHeader } from "@/components/shells";
 
@@ -9,6 +9,8 @@ export const metadata: Metadata = { title: "Raise Dispute", description: "Raise 
 
 export default async function RaiseDisputePage({ params }: { params: Promise<{ orderCode: string }> }) {
   const route = await params;
+  const { user } = await getCurrentUserAndProfile();
+  if (!user) redirect(`/login?next=/orders/${route.orderCode}/dispute`);
   const { order } = await getOrderByCode(route.orderCode);
   if (!order) notFound();
   return (

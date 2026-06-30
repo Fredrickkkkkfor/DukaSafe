@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default async function BuyerOrdersPage() {
   const { user, orders } = await getBuyerOrders();
-  if (!user && process.env.NEXT_PUBLIC_SUPABASE_URL) redirect("/login?next=/orders");
+  if (!user) redirect("/login?next=/orders");
   const activeOrders = orders.filter((order: { status: string }) => !["closed", "cancelled", "refunded"].includes(order.status));
   const disputedOrders = orders.filter((order: { status: string }) => order.status === "disputed");
 

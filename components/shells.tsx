@@ -18,9 +18,12 @@ export async function PublicHeader() {
         </nav>
         <div className="flex items-center gap-2">
           {user ? (
-            <LinkButton href={profile?.role === "admin" || profile?.role === "operations" ? "/admin/verification" : profile?.role === "seller" ? "/seller/dashboard" : "/check"} className="hidden sm:inline-flex">
-              Dashboard
-            </LinkButton>
+            <>
+              <LinkButton href={profile?.role === "admin" || profile?.role === "operations" ? "/admin/verification" : profile?.role === "seller" ? "/seller/dashboard" : "/orders"} className="hidden sm:inline-flex">
+                Dashboard
+              </LinkButton>
+              <LinkButton href="/logout" variant="ghost" className="hidden sm:inline-flex">Logout</LinkButton>
+            </>
           ) : (
             <>
               <LinkButton href="/login" variant="ghost" className="hidden sm:inline-flex">Login</LinkButton>
@@ -50,6 +53,8 @@ export async function SellerShell({ children }: { children: React.ReactNode }) {
             <SideLink href="/seller/create-link" icon={<PackagePlus className="h-4 w-4" />}>Create Link</SideLink>
             <SideLink href="/seller/disputes" icon={<AlertTriangle className="h-4 w-4" />}>Disputes</SideLink>
             <SideLink href="/seller/register" icon={<UserRoundCheck className="h-4 w-4" />}>Verification</SideLink>
+            <SideLink href="/complete-profile" icon={<UserRoundCheck className="h-4 w-4" />}>Profile</SideLink>
+            <SideLink href="/logout" icon={<ShieldCheck className="h-4 w-4" />}>Logout</SideLink>
           </nav>
         </aside>
         <main className="min-w-0 pb-24">{children}</main>
@@ -77,6 +82,7 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
             <SideLink href="/admin/orders" icon={<LayoutDashboard className="h-4 w-4" />}>Orders & Transactions</SideLink>
             <SideLink href="/admin/reports" icon={<AlertTriangle className="h-4 w-4" />}>Reports</SideLink>
             <SideLink href="/protection-charter" icon={<ShieldCheck className="h-4 w-4" />}>Policy</SideLink>
+            <SideLink href="/logout" icon={<ShieldCheck className="h-4 w-4" />}>Logout</SideLink>
           </nav>
         </aside>
         <main className="min-w-0 pb-24">{children}</main>
