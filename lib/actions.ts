@@ -373,12 +373,17 @@ export async function markDispatchedAction(formData: FormData) {
   const { supabase, user } = await requireUser();
   const orderId = value(formData, "order_id");
   const orderCode = value(formData, "order_code");
-  const sellerId = value(formData, "seller_id");
+  const { data: order } = await supabase.from("orders").select("id,seller_id,status").eq("id", orderId).maybeSingle();
+  if (!order) throw new Error("Order not found.");
+  const { data: seller } = await supabase.from("sellers").select("id,user_id").eq("id", order.seller_id).maybeSingle();
+  if (!seller || seller.user_id !== user.id) redirect("/unauthorized");
+  if (order.status !== "paid") redirect(`/orders/${orderCode}?error=dispatch-requires-paid`);
   const proof = fileFromForm(formData, "delivery_proof");
-  const uploaded = proof ? await uploadFile("delivery-proofs", user.id, proof, `orders/${orderId}`, false) : { path: null, url: null };
+  if (!proof) redirect(`/orders/${orderCode}?error=delivery-proof-required`);
+  const uploaded = await uploadFile("delivery-proofs", user.id, proof, `orders/${orderId}`, false);
   await supabase.from("delivery_proofs").insert({
     order_id: orderId,
-    seller_id: sellerId,
+    seller_id: seller.id,
     proof_storage_path: uploaded.path,
     notes: value(formData, "notes"),
     courier_name: value(formData, "courier_name") || null,
@@ -386,7 +391,7 @@ export async function markDispatchedAction(formData: FormData) {
     uploaded_by: user.id
   });
   await supabase.from("orders").update({ status: "dispatched", delivery_proof_storage_path: uploaded.path }).eq("id", orderId);
-  await supabase.from("order_status_events").insert({ order_id: orderId, changed_by: user.id, new_status: "dispatched", title: "Seller dispatched item", notes: value(formData, "notes"), evidence_storage_path: uploaded.path });
+  await supabase.from("order_status_events").insert({ order_id: orderId, changed_by: user.id, old_status: "paid", new_status: "dispatched", title: "Seller dispatched item", notes: value(formData, "notes"), evidence_storage_path: uploaded.path });
   revalidatePath(`/orders/${orderCode}`);
   redirect(`/orders/${orderCode}`);
 }
@@ -395,6 +400,11 @@ export async function confirmPaymentAction(formData: FormData) {
   const { supabase, user } = await requireUser();
   const orderId = value(formData, "order_id");
   const orderCode = value(formData, "order_code");
+  const { data: order } = await supabase.from("orders").select("id,seller_id,status").eq("id", orderId).maybeSingle();
+  if (!order) throw new Error("Order not found.");
+  const { data: seller } = await supabase.from("sellers").select("user_id").eq("id", order.seller_id).maybeSingle();
+  if (!seller || seller.user_id !== user.id) redirect("/unauthorized");
+  if (order.status !== "payment_uploaded") redirect(`/orders/${orderCode}?error=payment-not-ready`);
   await supabase.from("orders").update({ status: "paid", payment_status: "verified", paid_at: new Date().toISOString() }).eq("id", orderId);
   await supabase.from("payments").update({ status: "verified", verified_at: new Date().toISOString() }).eq("order_id", orderId);
   await supabase.from("order_status_events").insert({ order_id: orderId, changed_by: user.id, old_status: "payment_uploaded", new_status: "paid", title: "Seller confirmed payment", notes: "Seller reviewed the uploaded proof and accepted payment." });
@@ -406,6 +416,11 @@ export async function flagPaymentAction(formData: FormData) {
   const { supabase, user } = await requireUser();
   const orderId = value(formData, "order_id");
   const orderCode = value(formData, "order_code");
+  const { data: order } = await supabase.from("orders").select("id,seller_id,status").eq("id", orderId).maybeSingle();
+  if (!order) throw new Error("Order not found.");
+  const { data: seller } = await supabase.from("sellers").select("user_id").eq("id", order.seller_id).maybeSingle();
+  if (!seller || seller.user_id !== user.id) redirect("/unauthorized");
+  if (order.status !== "payment_uploaded") redirect(`/orders/${orderCode}?error=payment-not-ready`);
   const notes = value(formData, "notes") || "Payment proof needs DukaSafe review.";
   await supabase.from("order_status_events").insert({ order_id: orderId, changed_by: user.id, new_status: "payment_uploaded", title: "Payment proof flagged for review", notes });
   revalidatePath(`/orders/${orderCode}`);
@@ -416,8 +431,12 @@ export async function confirmDeliveryAction(formData: FormData) {
   const { supabase, user } = await requireUser();
   const orderId = value(formData, "order_id");
   const orderCode = value(formData, "order_code");
+  const { data: order } = await supabase.from("orders").select("id,buyer_id,status").eq("id", orderId).maybeSingle();
+  if (!order) throw new Error("Order not found.");
+  if (order.buyer_id !== user.id) redirect("/unauthorized");
+  if (!["dispatched", "delivered"].includes(order.status)) redirect(`/orders/${orderCode}?error=delivery-not-ready`);
   await supabase.from("orders").update({ status: "closed", delivery_otp_confirmed_at: new Date().toISOString() }).eq("id", orderId);
-  await supabase.from("order_status_events").insert({ order_id: orderId, changed_by: user.id, new_status: "closed", title: "Buyer confirmed delivery", notes: "Order closed and seller trust history updated." });
+  await supabase.from("order_status_events").insert({ order_id: orderId, changed_by: user.id, old_status: order.status, new_status: "closed", title: "Buyer confirmed delivery", notes: "Order closed and seller trust history updated." });
   revalidatePath(`/orders/${orderCode}`);
   redirect(`/orders/${orderCode}`);
 }

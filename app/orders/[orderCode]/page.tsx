@@ -2,20 +2,28 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PackageCheck, ShieldAlert, Truck } from "lucide-react";
 import { confirmDeliveryAction, createReviewAction, markDispatchedAction } from "@/lib/actions";
-import { getOrderByCode } from "@/lib/data";
+import { getCurrentUserAndProfile, getOrderByCode } from "@/lib/data";
 import { ActionPanel, Badge, Button, Card, DataTable, EmptyState, Input, LinkButton, StatusBadge, Stepper, StickyMobileCTA, Textarea, Timeline, formatStatus } from "@/components/ui";
 import { PageShell, PublicHeader } from "@/components/shells";
 
 export const metadata: Metadata = { title: "Order Tracking", description: "Track a DukaSafe protected order and evidence trail." };
 
-const statuses = ["pending", "payment_uploaded", "dispatched", "delivered", "closed"];
+const statuses = ["pending", "payment_uploaded", "paid", "dispatched", "delivered", "closed"];
 
-export default async function OrderTrackingPage({ params }: { params: Promise<{ orderCode: string }> }) {
+export default async function OrderTrackingPage({ params, searchParams }: { params: Promise<{ orderCode: string }>; searchParams: Promise<{ error?: string }> }) {
   const route = await params;
+  const query = await searchParams;
+  const { user, profile } = await getCurrentUserAndProfile();
   const { order, events, payments, deliveryProofs, disputes } = await getOrderByCode(route.orderCode);
   if (!order) notFound();
   const active = Math.max(0, statuses.indexOf(order.status));
   const next = getNextAction(order.status);
+  const isBuyer = user?.id === order.buyer_id;
+  const isSeller = user?.id === order.sellers?.user_id;
+  const isAdmin = profile?.role === "admin" || profile?.role === "operations";
+  const canDispatch = isSeller && order.status === "paid";
+  const canConfirmDelivery = isBuyer && ["dispatched", "delivered"].includes(order.status);
+  const canDispute = isBuyer && !["closed", "cancelled", "refunded"].includes(order.status);
   return (
     <>
       <PublicHeader />
@@ -25,10 +33,15 @@ export default async function OrderTrackingPage({ params }: { params: Promise<{ 
             <Badge tone="green">Order {order.order_code}</Badge>
             <h1 className="mt-4 text-4xl font-black text-forest">Track your protected order</h1>
             <p className="mt-2 text-charcoal/70">Every update is recorded as part of the buyer-seller evidence trail.</p>
-            <div className="mt-5"><Stepper active={active} steps={["Pending", "Paid", "Dispatched", "Delivered", "Closed"]} /></div>
+            <div className="mt-5"><Stepper active={active} steps={["Pending", "Payment proof", "Paid", "Dispatched", "Delivered", "Closed"]} /></div>
             <div className="mt-5">
               <ActionPanel title={next.title} body={next.body} tone={next.tone} />
             </div>
+            {query.error && (
+              <div className="mt-4">
+                <ActionPanel title="Action not available" body={orderErrorMessage(query.error)} tone="gold" />
+              </div>
+            )}
           </div>
           <Card className="rounded-3xl bg-sand">
             <StatusBadge status={order.status} />
@@ -56,22 +69,29 @@ export default async function OrderTrackingPage({ params }: { params: Promise<{ 
             <Card>
               <h2 className="text-xl font-black text-forest">Actions</h2>
               <div className="mt-4 grid gap-3">
-                <form action={markDispatchedAction} className="grid gap-3">
-                  <input type="hidden" name="order_id" value={order.id} />
-                  <input type="hidden" name="order_code" value={order.order_code} />
-                  <input type="hidden" name="seller_id" value={order.seller_id} />
-                  <Input label="Delivery proof" name="delivery_proof" type="file" accept="image/png,image/jpeg,image/webp,application/pdf" />
-                  <Input label="Courier" name="courier_name" placeholder="Rider / courier name" />
-                  <Input label="Tracking code" name="tracking_code" />
-                  <Textarea label="Dispatch notes" name="notes" />
-                  <Button type="submit" variant="secondary"><Truck className="h-4 w-4" /> Mark as dispatched</Button>
-                </form>
-                <form action={confirmDeliveryAction}>
-                  <input type="hidden" name="order_id" value={order.id} />
-                  <input type="hidden" name="order_code" value={order.order_code} />
-                  <Button type="submit" className="w-full"><PackageCheck className="h-4 w-4" /> Confirm delivery</Button>
-                </form>
-                <LinkButton href={`/orders/${order.order_code}/dispute`} variant="danger"><ShieldAlert className="h-4 w-4" /> Raise dispute</LinkButton>
+                {canDispatch && (
+                  <form action={markDispatchedAction} className="grid gap-3">
+                    <input type="hidden" name="order_id" value={order.id} />
+                    <input type="hidden" name="order_code" value={order.order_code} />
+                    <Input label="Delivery proof" name="delivery_proof" type="file" accept="image/png,image/jpeg,image/webp,application/pdf" required />
+                    <Input label="Courier" name="courier_name" placeholder="Rider / courier name" />
+                    <Input label="Tracking code" name="tracking_code" />
+                    <Textarea label="Dispatch notes" name="notes" />
+                    <Button type="submit" variant="secondary"><Truck className="h-4 w-4" /> Mark as dispatched</Button>
+                  </form>
+                )}
+                {canConfirmDelivery && (
+                  <form action={confirmDeliveryAction}>
+                    <input type="hidden" name="order_id" value={order.id} />
+                    <input type="hidden" name="order_code" value={order.order_code} />
+                    <Button type="submit" className="w-full"><PackageCheck className="h-4 w-4" /> Confirm delivery</Button>
+                  </form>
+                )}
+                {canDispute && <LinkButton href={`/orders/${order.order_code}/dispute`} variant="danger"><ShieldAlert className="h-4 w-4" /> Raise dispute</LinkButton>}
+                {isAdmin && <LinkButton href="/admin/orders" variant="secondary">Inspect in Admin</LinkButton>}
+                {!canDispatch && !canConfirmDelivery && !canDispute && !isAdmin && (
+                  <EmptyState title="No action needed" body="The next available action will appear here when this order reaches the right stage." />
+                )}
               </div>
             </Card>
           </div>
@@ -110,16 +130,30 @@ export default async function OrderTrackingPage({ params }: { params: Promise<{ 
           </Card>
         )}
       </PageShell>
-      <StickyMobileCTA>
-        <form action={confirmDeliveryAction} className="flex-1">
-          <input type="hidden" name="order_id" value={order.id} />
-          <input type="hidden" name="order_code" value={order.order_code} />
-          <button type="submit" className="min-h-12 w-full rounded-2xl bg-forest px-3 text-sm font-bold text-white">Confirm Delivery</button>
-        </form>
-        <LinkButton href={`/orders/${order.order_code}/dispute`} variant="secondary" className="flex-1">Raise Dispute</LinkButton>
-      </StickyMobileCTA>
+      {(canConfirmDelivery || canDispute) && (
+        <StickyMobileCTA>
+          {canConfirmDelivery && (
+            <form action={confirmDeliveryAction} className="flex-1">
+              <input type="hidden" name="order_id" value={order.id} />
+              <input type="hidden" name="order_code" value={order.order_code} />
+              <button type="submit" className="min-h-12 w-full rounded-2xl bg-forest px-3 text-sm font-bold text-white">Confirm Delivery</button>
+            </form>
+          )}
+          {canDispute && <LinkButton href={`/orders/${order.order_code}/dispute`} variant="secondary" className="flex-1">Raise Dispute</LinkButton>}
+        </StickyMobileCTA>
+      )}
     </>
   );
+}
+
+function orderErrorMessage(error: string) {
+  const messages: Record<string, string> = {
+    "dispatch-requires-paid": "Payment must be confirmed before dispatch proof can be uploaded.",
+    "delivery-proof-required": "Upload a dispatch receipt, rider photo, or courier proof before marking the order as dispatched.",
+    "payment-not-ready": "Payment proof must be uploaded before the seller can confirm or flag payment.",
+    "delivery-not-ready": "Only the buyer can confirm delivery after dispatch proof has been recorded."
+  };
+  return messages[error] || "This action is not available for the current order status.";
 }
 
 function getNextAction(status: string): { title: string; body: string; tone: "sand" | "green" | "red" | "gold" } {

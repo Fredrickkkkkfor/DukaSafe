@@ -66,9 +66,9 @@ export default async function SellerOrdersPage() {
                   <form action={markDispatchedAction} className="grid gap-3">
                     <input type="hidden" name="order_id" value={order.id} />
                     <input type="hidden" name="order_code" value={order.order_code} />
-                    <input type="hidden" name="seller_id" value={order.seller_id} />
-                    <Input label="Delivery proof" name="delivery_proof" type="file" accept="image/png,image/jpeg,image/webp,application/pdf" />
+                    <Input label="Delivery proof" name="delivery_proof" type="file" accept="image/png,image/jpeg,image/webp,application/pdf" required />
                     <Input label="Courier" name="courier_name" />
+                    <Input label="Tracking code" name="tracking_code" />
                     <Textarea label="Dispatch notes" name="notes" />
                     <Button type="submit">Mark as Dispatched</Button>
                   </form>
