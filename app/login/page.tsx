@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Login", description: "Sign in to you
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string; error?: string }> }) {
   const query = await searchParams;
-  const phoneUnavailable = query.error === "phone-auth-unavailable";
+  const phoneUnavailable = isPhoneAuthUnavailable(query.error);
   return (
     <>
       <PublicHeader />
@@ -46,9 +46,13 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
 }
 
 function authErrorMessage(error: string) {
+  if (isPhoneAuthUnavailable(error)) return "Phone sign-in is not enabled yet. Use email below to continue safely.";
   const messages: Record<string, string> = {
-    "phone-auth-unavailable": "Phone sign-in is not enabled yet. Use email below to continue safely.",
     "missing-supabase-env": "Supabase environment variables are missing. Add them before signing in."
   };
   return messages[error] || error;
+}
+
+function isPhoneAuthUnavailable(error?: string) {
+  return error === "phone-auth-unavailable" || error?.toLowerCase() === "unsupported phone provider";
 }
