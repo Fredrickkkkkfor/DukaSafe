@@ -454,6 +454,17 @@ export async function raiseDisputeAction(formData: FormData) {
   const parsed = disputeSchema.parse(Object.fromEntries(formData));
   const { data: order } = await supabase.from("orders").select("*").eq("id", parsed.order_id).maybeSingle();
   if (!order) throw new Error("Order not found.");
+  if (order.buyer_id !== user.id) redirect("/unauthorized");
+  const disputeWindowOpen = order.dispute_window_closes_at ? new Date(order.dispute_window_closes_at).getTime() >= Date.now() : false;
+  const canDispute = !["cancelled", "refunded", "disputed"].includes(order.status) && (order.status !== "closed" || disputeWindowOpen);
+  if (!canDispute) redirect(`/orders/${parsed.order_code}?error=dispute-not-available`);
+  const { data: existingDispute } = await supabase
+    .from("disputes")
+    .select("id")
+    .eq("order_id", order.id)
+    .in("status", ["open", "awaiting_seller_response", "awaiting_buyer_response", "under_admin_review"])
+    .maybeSingle();
+  if (existingDispute) redirect(`/orders/${parsed.order_code}?error=dispute-already-open`);
   const { data: dispute, error } = await supabase.from("disputes").insert({
     order_id: order.id,
     seller_id: order.seller_id,
@@ -471,7 +482,7 @@ export async function raiseDisputeAction(formData: FormData) {
     await supabase.from("dispute_evidence").insert({ dispute_id: dispute.id, uploaded_by: user.id, evidence_type: "chat_screenshot", title: file.name, storage_path: uploaded.path, mime_type: file.type, file_size_bytes: file.size });
   }
   await supabase.from("orders").update({ status: "disputed" }).eq("id", order.id);
-  await supabase.from("order_status_events").insert({ order_id: order.id, changed_by: user.id, new_status: "disputed", title: "Dispute opened", notes: parsed.title });
+  await supabase.from("order_status_events").insert({ order_id: order.id, changed_by: user.id, old_status: order.status, new_status: "disputed", title: "Dispute opened", notes: parsed.title });
   revalidatePath(`/orders/${parsed.order_code}`);
   redirect(`/orders/${parsed.order_code}`);
 }

@@ -23,7 +23,8 @@ export default async function OrderTrackingPage({ params, searchParams }: { para
   const isAdmin = profile?.role === "admin" || profile?.role === "operations";
   const canDispatch = isSeller && order.status === "paid";
   const canConfirmDelivery = isBuyer && ["dispatched", "delivered"].includes(order.status);
-  const canDispute = isBuyer && !["closed", "cancelled", "refunded"].includes(order.status);
+  const disputeWindowOpen = order.dispute_window_closes_at ? new Date(order.dispute_window_closes_at).getTime() >= new Date().getTime() : false;
+  const canDispute = isBuyer && !["cancelled", "refunded", "disputed"].includes(order.status) && (order.status !== "closed" || disputeWindowOpen);
   return (
     <>
       <PublicHeader />
@@ -163,7 +164,9 @@ function orderErrorMessage(error: string) {
     "dispatch-requires-paid": "Payment must be confirmed before dispatch proof can be uploaded.",
     "delivery-proof-required": "Upload a dispatch receipt, rider photo, or courier proof before marking the order as dispatched.",
     "payment-not-ready": "Payment proof must be uploaded before the seller can confirm or flag payment.",
-    "delivery-not-ready": "Only the buyer can confirm delivery after dispatch proof has been recorded."
+    "delivery-not-ready": "Only the buyer can confirm delivery after dispatch proof has been recorded.",
+    "dispute-not-available": "The dispute window is closed or the order status does not allow a new dispute.",
+    "dispute-already-open": "A dispute is already open for this order. Follow the existing case in the evidence trail."
   };
   return messages[error] || "This action is not available for the current order status.";
 }
