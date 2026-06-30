@@ -8,12 +8,13 @@ import { PageShell, PublicHeader } from "@/components/shells";
 
 export const metadata: Metadata = { title: "Protected Checkout", description: "Place a DukaSafe protected order with M-PESA payment proof." };
 
-export default async function CheckoutPage({ params }: { params: Promise<{ productId: string }> }) {
+export default async function CheckoutPage({ params, searchParams }: { params: Promise<{ productId: string }>; searchParams: Promise<{ error?: string }> }) {
   const route = await params;
+  const query = await searchParams;
   const { user } = await getCurrentUserAndProfile();
   const { product, seller } = await getProductForCheckout(route.productId);
   if (!product || !seller) redirect("/check");
-  const canCheckout = product.status === "active" && seller.verified && seller.seller_status === "active";
+  const canCheckout = product.status === "active" && seller.verified && seller.seller_status === "active" && seller.verification_status === "approved";
   const protectionFee = Math.max(50, Math.round(Number(product.price) * 0.03));
   const total = Number(product.price) + protectionFee;
   const needsAuth = !user && product.id !== "demo-product";
@@ -24,12 +25,20 @@ export default async function CheckoutPage({ params }: { params: Promise<{ produ
         <aside className="space-y-4">
           <Card>
             <Badge tone="green"><LockKeyhole className="h-3.5 w-3.5" /> Protected checkout</Badge>
+            {product.product_image_url && (
+              <div
+                className="mt-4 aspect-[4/3] rounded-3xl bg-sand bg-cover bg-center ring-1 ring-forest/10"
+                style={{ backgroundImage: `url(${product.product_image_url})` }}
+                aria-label={`${product.name} product image`}
+              />
+            )}
             <h1 className="mt-4 text-3xl font-black text-forest">{product.name}</h1>
             <p className="mt-2 text-sm leading-6 text-charcoal/70">{product.description}</p>
             <p className="mt-5 text-4xl font-black">KSh {Number(product.price).toLocaleString()}</p>
             <div className="mt-5 rounded-3xl bg-sand p-4">
               <p className="text-sm font-black text-forest">{seller.shop_name}</p>
               <div className="mt-2"><TrustBadge score={seller.trust_score} badge={seller.trust_badge} /></div>
+              <p className="mt-3 text-xs leading-5 text-charcoal/65">DukaSafe records your order details, payment proof, delivery proof, and dispute evidence.</p>
             </div>
           </Card>
           <Card>
@@ -44,6 +53,16 @@ export default async function CheckoutPage({ params }: { params: Promise<{ produ
         <Card>
           <h2 className="text-2xl font-black text-forest">Complete protected order</h2>
           <div className="mt-4"><Stepper active={0} steps={["Pending", "Paid", "Dispatched", "Delivered", "Closed"]} /></div>
+          {query.error === "payment-proof-required" && (
+            <div className="mt-5">
+              <ActionPanel title="Upload M-PESA proof first" body="Please attach your M-PESA confirmation screenshot before confirming the protected order." tone="gold" />
+            </div>
+          )}
+          {query.error === "checkout-paused" && (
+            <div className="mt-5">
+              <ActionPanel title="Checkout paused" body="This product or seller is no longer active on DukaSafe. Do not send money directly." tone="red" />
+            </div>
+          )}
           {!canCheckout ? (
             <ActionPanel
               title="Protected checkout paused"
@@ -73,7 +92,8 @@ export default async function CheckoutPage({ params }: { params: Promise<{ produ
                 <option value="">No size selected</option>
                 {(product.available_sizes || []).map((size: string) => <option key={size}>{size}</option>)}
               </Select>
-              <Input label="M-PESA payment screenshot" name="payment_proof" type="file" accept="image/png,image/jpeg,image/webp,application/pdf" />
+              <Input label="M-PESA receipt code" name="mpesa_receipt_code" placeholder="Example: SFA73..." />
+              <Input label="M-PESA payment screenshot" name="payment_proof" type="file" accept="image/png,image/jpeg,image/webp,application/pdf" required />
               <Textarea label="Delivery notes" name="delivery_notes" className="md:col-span-2" />
               <div className="rounded-3xl bg-white/70 p-4 md:col-span-2">
                 <div className="flex justify-between text-sm"><span>Item</span><strong>KSh {Number(product.price).toLocaleString()}</strong></div>

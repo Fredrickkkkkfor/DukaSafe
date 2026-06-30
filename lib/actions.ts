@@ -51,7 +51,8 @@ const checkoutSchema = z.object({
   delivery_location: z.string().min(3),
   delivery_method: z.string().min(2),
   delivery_notes: z.string().optional(),
-  selected_size: z.string().optional()
+  selected_size: z.string().optional(),
+  mpesa_receipt_code: z.string().max(40).optional()
 });
 
 const disputeSchema = z.object({
@@ -323,6 +324,12 @@ export async function createOrderAction(formData: FormData) {
   const parsed = checkoutSchema.parse(Object.fromEntries(formData));
   const { data: product } = await supabase.from("products").select("*, sellers(*)").eq("id", parsed.product_id).maybeSingle();
   if (!product) throw new Error("Product not found.");
+  const seller = product.sellers;
+  if (product.status !== "active" || !seller?.verified || seller.seller_status !== "active" || seller.verification_status !== "approved") {
+    redirect(`/checkout/${parsed.product_id}?error=checkout-paused`);
+  }
+  const proof = fileFromForm(formData, "payment_proof");
+  if (!proof) redirect(`/checkout/${parsed.product_id}?error=payment-proof-required`);
   const protectionFee = Math.max(50, Math.round(Number(product.price) * 0.03));
   const { data: order, error } = await supabase.from("orders").insert({
     product_id: product.id,
@@ -345,21 +352,19 @@ export async function createOrderAction(formData: FormData) {
     payment_status: "pending"
   }).select("*").single();
   if (error) throw new Error(error.message);
-  const proof = fileFromForm(formData, "payment_proof");
-  if (proof) {
-    const uploaded = await uploadFile("payment-proofs", user.id, proof, `orders/${order.id}`, false);
-    await supabase.from("payments").insert({
-      order_id: order.id,
-      amount: Number(product.price) + protectionFee,
-      status: "proof_uploaded",
-      proof_storage_path: uploaded.path,
-      payer_phone: parsed.buyer_phone,
-      paybill_number: product.sellers?.paybill_number || null,
-      till_number: product.sellers?.till_number || null
-    });
-    await supabase.from("orders").update({ status: "payment_uploaded", payment_status: "proof_uploaded", payment_proof_storage_path: uploaded.path }).eq("id", order.id);
-    await supabase.from("order_status_events").insert({ order_id: order.id, changed_by: user.id, new_status: "payment_uploaded", title: "Payment proof uploaded", notes: "Buyer attached M-PESA payment evidence.", evidence_storage_path: uploaded.path });
-  }
+  const uploaded = await uploadFile("payment-proofs", user.id, proof, `orders/${order.id}`, false);
+  await supabase.from("payments").insert({
+    order_id: order.id,
+    amount: Number(product.price) + protectionFee,
+    status: "proof_uploaded",
+    mpesa_receipt_code: parsed.mpesa_receipt_code || null,
+    proof_storage_path: uploaded.path,
+    payer_phone: parsed.buyer_phone,
+    paybill_number: product.sellers?.paybill_number || null,
+    till_number: product.sellers?.till_number || null
+  });
+  await supabase.from("orders").update({ status: "payment_uploaded", payment_status: "proof_uploaded", payment_proof_storage_path: uploaded.path }).eq("id", order.id);
+  await supabase.from("order_status_events").insert({ order_id: order.id, changed_by: user.id, old_status: "pending", new_status: "payment_uploaded", title: "Payment proof uploaded", notes: "Buyer attached M-PESA payment evidence.", evidence_storage_path: uploaded.path });
   revalidatePath(`/orders/${order.order_code}`);
   redirect(`/orders/${order.order_code}`);
 }
