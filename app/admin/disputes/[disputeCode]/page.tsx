@@ -10,7 +10,8 @@ export const metadata: Metadata = { title: "Admin Dispute Review", description: 
 export default async function AdminDisputeReviewPage({ params }: { params: Promise<{ disputeCode: string }> }) {
   const route = await params;
   const { profile } = await getCurrentUserAndProfile();
-  if (!profile || !["admin", "operations"].includes(profile.role)) redirect(`/login?next=/admin/disputes/${route.disputeCode}`);
+  if (!profile) redirect(`/login?next=/admin/disputes/${route.disputeCode}`);
+  if (!["admin", "operations"].includes(profile.role)) redirect("/unauthorized");
   const dispute = await getDisputeByCode(route.disputeCode);
   if (!dispute) notFound();
   return (

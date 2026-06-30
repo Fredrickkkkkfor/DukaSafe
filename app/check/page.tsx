@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { AlertTriangle, Search, ShieldCheck } from "lucide-react";
 import { searchSellers } from "@/lib/data";
-import { Badge, Card, EmptyState, Input, LinkButton, TrustBadge } from "@/components/ui";
-import { PageShell, PublicHeader } from "@/components/shells";
+import { ActionPanel, Badge, Card, EmptyState, LinkButton, TrustBadge } from "@/components/ui";
+import { BuyerMobileNav, PageShell, PublicHeader } from "@/components/shells";
 
 export const metadata: Metadata = { title: "Check a Seller", description: "Verify a TikTok, WhatsApp, Instagram, or DukaSafe seller before paying." };
 
@@ -37,7 +37,7 @@ export default async function CheckSellerPage({ searchParams }: { searchParams: 
 
         <section className="grid gap-4">
           {query.q && !sellers.length && (
-            <EmptyState title="Seller not found" body="Do not pay directly. Ask the seller for a verified DukaSafe checkout link, or report the concern if they are pressuring you to pay by phone number only." action={<LinkButton href="/protection-charter" variant="secondary">Read buyer safety rules</LinkButton>} />
+            <EmptyState title="Seller not found" body="This does not automatically mean they are unsafe, but they are not verified here. Do not pay directly if they cannot provide a protected checkout link." action={<div className="flex flex-col justify-center gap-2 sm:flex-row"><LinkButton href={`/report-concern?seller=${encodeURIComponent(query.q)}`} variant="secondary">Report concern</LinkButton><LinkButton href="/protection-charter" variant="secondary">Read buyer safety rules</LinkButton></div>} />
           )}
           {sellers.map((seller) => (
             <Card key={seller.id} className="grid gap-5 md:grid-cols-[1fr_14rem]">
@@ -54,14 +54,22 @@ export default async function CheckSellerPage({ searchParams }: { searchParams: 
               <div className="flex flex-col justify-between rounded-3xl bg-sand p-4">
                 <div>
                   <p className="text-sm font-black text-forest">Verification status</p>
-                  <p className="mt-2 text-sm text-charcoal/70">{seller.verified ? "This seller has passed DukaSafe verification checks." : "This seller is not currently verified."}</p>
+                  <p className="mt-2 text-sm text-charcoal/70">{seller.seller_status === "suspended" ? "This seller is currently suspended on DukaSafe." : seller.verified ? "This seller has passed DukaSafe verification checks. Always use their protected checkout link before paying." : "This seller has applied but is not yet fully verified. Do not send money directly."}</p>
                 </div>
-                <LinkButton href={`/s/${seller.slug}`} className="mt-4 w-full">View Seller Profile</LinkButton>
+                {seller.seller_status === "suspended" ? (
+                  <LinkButton href={`/report-concern?seller=${encodeURIComponent(seller.shop_name)}`} variant="danger" className="mt-4 w-full">Report Concern</LinkButton>
+                ) : (
+                  <LinkButton href={`/s/${seller.slug}`} className="mt-4 w-full">View Seller Profile</LinkButton>
+                )}
               </div>
             </Card>
           ))}
+          {sellers.some((seller) => !seller.verified && seller.seller_status !== "suspended") && (
+            <ActionPanel title="Buyer safety first" body="If a seller is under review, ask them to complete verification and use a protected checkout link before sending money." tone="gold" />
+          )}
         </section>
       </PageShell>
+      <BuyerMobileNav />
     </>
   );
 }

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { MessageCircle, PackageCheck, ShieldAlert, ShieldCheck, Star } from "lucide-react";
 import { getSellerBySlug } from "@/lib/data";
 import { reportSellerAction } from "@/lib/actions";
-import { Badge, Button, Card, EmptyState, LinkButton, MetricCard, Textarea, TrustBadge } from "@/components/ui";
+import { ActionPanel, Badge, Button, Card, EmptyState, LinkButton, MetricCard, StickyMobileCTA, Textarea, TrustBadge } from "@/components/ui";
 import { PageShell, PublicHeader } from "@/components/shells";
 
 export async function generateMetadata({ params }: { params: Promise<{ sellerSlug: string }> }): Promise<Metadata> {
@@ -16,6 +16,7 @@ export default async function SellerProfilePage({ params }: { params: Promise<{ 
   const route = await params;
   const { seller, products, reviews } = await getSellerBySlug(route.sellerSlug);
   if (!seller) notFound();
+  const isActive = seller.verified && seller.seller_status === "active";
   return (
     <>
       <PublicHeader />
@@ -32,9 +33,17 @@ export default async function SellerProfilePage({ params }: { params: Promise<{ 
             <p className="text-sm font-black text-forest">Masked WhatsApp</p>
             <p className="mt-2 text-2xl font-black">{seller.masked_whatsapp || "Hidden until order"}</p>
             <p className="mt-3 text-sm text-charcoal/65">Contact details unlock after a protected order is placed.</p>
-            <LinkButton href="#products" className="mt-5 w-full">Shop Safely</LinkButton>
+            <LinkButton href={isActive ? "#products" : "/check"} className="mt-5 w-full" variant={isActive ? "primary" : "secondary"}>{isActive ? "Shop Safely" : "Check Again Later"}</LinkButton>
           </Card>
         </Card>
+        {!isActive && (
+          <ActionPanel
+            title={seller.seller_status === "suspended" ? "Seller currently suspended" : "Seller not fully verified"}
+            body={seller.seller_status === "suspended" ? "New protected orders are paused while DukaSafe reviews this seller." : "This seller is not yet fully verified. Product links are hidden until verification is complete."}
+            tone={seller.seller_status === "suspended" ? "red" : "gold"}
+            action={<LinkButton href={`/report-concern?seller=${encodeURIComponent(seller.shop_name)}`} variant="secondary">Report Concern</LinkButton>}
+          />
+        )}
 
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <MetricCard label="Trust score" value={`${Math.round(Number(seller.trust_score || 0))}/100`} icon={<ShieldCheck className="h-5 w-5" />} />
@@ -60,7 +69,7 @@ export default async function SellerProfilePage({ params }: { params: Promise<{ 
         <section id="products" className="space-y-4">
           <h2 className="text-3xl font-black text-forest">Active protected links</h2>
           <div className="grid gap-4 md:grid-cols-3">
-            {products.length ? products.map((product: { id: string; name: string; price: number; description?: string; currency?: string }) => (
+            {isActive && products.length ? products.map((product: { id: string; name: string; price: number; description?: string; currency?: string }) => (
               <Card key={product.id}>
                 <Badge tone="green">Protected checkout</Badge>
                 <h3 className="mt-3 text-xl font-black text-forest">{product.name}</h3>
@@ -68,7 +77,7 @@ export default async function SellerProfilePage({ params }: { params: Promise<{ 
                 <p className="mt-4 text-2xl font-black">KSh {Number(product.price).toLocaleString()}</p>
                 <LinkButton href={`/checkout/${product.id}`} className="mt-5 w-full">Shop Safely</LinkButton>
               </Card>
-            )) : <EmptyState title="No active product links" body="This seller has no public checkout links right now." />}
+            )) : <EmptyState title="No active product links" body={isActive ? "This seller has no public checkout links right now." : "Checkout links are paused until this seller is active and verified."} />}
           </div>
         </section>
 
@@ -85,6 +94,12 @@ export default async function SellerProfilePage({ params }: { params: Promise<{ 
           </form>
         </Card>
       </PageShell>
+      {isActive && products[0] && (
+        <StickyMobileCTA>
+          <LinkButton href={`/checkout/${products[0].id}`} className="flex-1">Shop Safely</LinkButton>
+          <LinkButton href={`/report-concern?seller=${encodeURIComponent(seller.shop_name)}`} variant="secondary" className="flex-1">Report</LinkButton>
+        </StickyMobileCTA>
+      )}
     </>
   );
 }

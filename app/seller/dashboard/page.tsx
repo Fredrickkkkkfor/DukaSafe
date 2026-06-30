@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { AlertTriangle, BadgeCheck, PackagePlus, ShoppingBag, Star } from "lucide-react";
 import { getSellerWorkspace } from "@/lib/data";
-import { Badge, Card, DataTable, EmptyState, LinkButton, MetricCard, StatusBadge, TrustBadge } from "@/components/ui";
+import { Badge, Card, DataTable, EmptyState, LinkButton, MetricCard, StatusBadge, TrustBadge, formatStatus } from "@/components/ui";
 import { SellerShell } from "@/components/shells";
 
 export const metadata: Metadata = { title: "Seller Dashboard", description: "Manage DukaSafe orders, product links, disputes, and trust score." };
@@ -39,7 +39,7 @@ export default async function SellerDashboardPage() {
             />
           </div>
         </Card>
-        <section className="grid gap-5 lg:grid-cols-2">
+        <section id="disputes" className="grid gap-5 lg:grid-cols-2">
           <Card>
             <h2 className="text-2xl font-black text-forest">Product links</h2>
             <div className="mt-4 grid gap-3">
@@ -49,7 +49,7 @@ export default async function SellerDashboardPage() {
           <Card>
             <h2 className="text-2xl font-black text-forest">Reviews & disputes</h2>
             <div className="mt-4 grid gap-3">
-              <Badge tone="sand">Verification status: {seller.verification_status}</Badge>
+              <Badge tone="sand">Verification status: {formatStatus(seller.verification_status)}</Badge>
               {reviews.slice(0, 3).map((review: { id: string; rating: number; comment?: string }) => <div key={review.id} className="rounded-2xl bg-white/70 p-3 text-sm"><strong>{review.rating}/5</strong> {review.comment}</div>)}
               {!reviews.length && <p className="text-sm text-charcoal/65">Verified buyer reviews will appear here.</p>}
             </div>

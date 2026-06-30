@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { ArrowRight, BadgeCheck, Clock3, CreditCard, MessageCircle, ShieldCheck, ShoppingBag, Star, UsersRound } from "lucide-react";
-import { Badge, Card, LinkButton, MetricCard, TrustBadge } from "@/components/ui";
+import { Badge, Card, LinkButton, MetricCard, StickyMobileCTA, TrustBadge } from "@/components/ui";
 import { PageShell, PublicHeader } from "@/components/shells";
 import { demoSeller } from "@/lib/demo";
 
@@ -95,6 +95,10 @@ export default function LandingPage() {
           ))}
         </section>
       </PageShell>
+      <StickyMobileCTA>
+        <LinkButton href="/check" className="flex-1">Check Seller</LinkButton>
+        <LinkButton href="/seller/register" variant="secondary" className="flex-1">Verify Shop</LinkButton>
+      </StickyMobileCTA>
       <Footer />
     </>
   );

@@ -61,6 +61,18 @@ export async function getOrderByCode(orderCode: string) {
   return { order, events: events.data || [], payments: payments.data || [], deliveryProofs: deliveryProofs.data || [], disputes: disputes.data || [] };
 }
 
+export async function getBuyerOrders() {
+  const { user, profile } = await getCurrentUserAndProfile();
+  if (!user || !isSupabaseConfigured) return { user, profile, orders: [demoOrder] };
+  const supabase = await createSupabaseServerClient();
+  const { data } = await supabase
+    .from("orders")
+    .select("*, sellers(shop_name, slug, trust_score, trust_badge), products(name)")
+    .eq("buyer_id", user.id)
+    .order("created_at", { ascending: false });
+  return { user, profile, orders: data || [] };
+}
+
 export async function getSellerWorkspace() {
   const { user, profile } = await getCurrentUserAndProfile();
   if (!user || !isSupabaseConfigured) return { user, profile, seller: null, products: [], orders: [], reviews: [], disputes: [] };

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { PackageCheck, ShieldAlert, Truck } from "lucide-react";
 import { confirmDeliveryAction, markDispatchedAction } from "@/lib/actions";
 import { getOrderByCode } from "@/lib/data";
-import { Badge, Button, Card, DataTable, EmptyState, Input, LinkButton, StatusBadge, Stepper, Textarea, Timeline, TrustBadge } from "@/components/ui";
+import { ActionPanel, Badge, Button, Card, DataTable, EmptyState, Input, LinkButton, StatusBadge, Stepper, StickyMobileCTA, Textarea, Timeline, formatStatus } from "@/components/ui";
 import { PageShell, PublicHeader } from "@/components/shells";
 
 export const metadata: Metadata = { title: "Order Tracking", description: "Track a DukaSafe protected order and evidence trail." };
@@ -15,6 +15,7 @@ export default async function OrderTrackingPage({ params }: { params: Promise<{ 
   const { order, events, payments, deliveryProofs, disputes } = await getOrderByCode(route.orderCode);
   if (!order) notFound();
   const active = Math.max(0, statuses.indexOf(order.status));
+  const next = getNextAction(order.status);
   return (
     <>
       <PublicHeader />
@@ -25,6 +26,9 @@ export default async function OrderTrackingPage({ params }: { params: Promise<{ 
             <h1 className="mt-4 text-4xl font-black text-forest">Track your protected order</h1>
             <p className="mt-2 text-charcoal/70">Every update is recorded as part of the buyer-seller evidence trail.</p>
             <div className="mt-5"><Stepper active={active} steps={["Pending", "Paid", "Dispatched", "Delivered", "Closed"]} /></div>
+            <div className="mt-5">
+              <ActionPanel title={next.title} body={next.body} tone={next.tone} />
+            </div>
           </div>
           <Card className="rounded-3xl bg-sand">
             <StatusBadge status={order.status} />
@@ -45,7 +49,7 @@ export default async function OrderTrackingPage({ params }: { params: Promise<{ 
               <div className="mt-4 grid gap-2 text-sm text-charcoal/70">
                 <p><strong>Buyer:</strong> {order.buyer_full_name} - {order.buyer_phone}</p>
                 <p><strong>Delivery:</strong> {order.delivery_location}</p>
-                <p><strong>Payment proof:</strong> {order.payment_status?.replaceAll("_", " ")}</p>
+                <p><strong>Payment proof:</strong> {formatStatus(order.payment_status)}</p>
                 <p><strong>Delivery proof:</strong> {deliveryProofs.length ? "Uploaded" : "Pending"}</p>
               </div>
             </Card>
@@ -88,6 +92,33 @@ export default async function OrderTrackingPage({ params }: { params: Promise<{ 
           </div>
         </Card>
       </PageShell>
+      <StickyMobileCTA>
+        <form action={confirmDeliveryAction} className="flex-1">
+          <input type="hidden" name="order_id" value={order.id} />
+          <input type="hidden" name="order_code" value={order.order_code} />
+          <button type="submit" className="min-h-12 w-full rounded-2xl bg-forest px-3 text-sm font-bold text-white">Confirm Delivery</button>
+        </form>
+        <LinkButton href={`/orders/${order.order_code}/dispute`} variant="secondary" className="flex-1">Raise Dispute</LinkButton>
+      </StickyMobileCTA>
     </>
   );
+}
+
+function getNextAction(status: string): { title: string; body: string; tone: "sand" | "green" | "red" | "gold" } {
+  switch (status) {
+    case "pending":
+      return { title: "Waiting for payment proof", body: "Upload M-PESA confirmation proof so the seller can prepare the order.", tone: "gold" };
+    case "payment_uploaded":
+      return { title: "Seller should confirm payment", body: "Payment proof has been recorded. The seller should confirm and dispatch before delivery.", tone: "gold" };
+    case "paid":
+      return { title: "Seller should dispatch", body: "Payment is accepted. The seller needs to upload dispatch or delivery proof.", tone: "sand" };
+    case "dispatched":
+      return { title: "Buyer should confirm delivery", body: "Delivery proof is recorded. Confirm delivery if the item is correct, or raise a dispute if something is wrong.", tone: "green" };
+    case "disputed":
+      return { title: "DukaSafe is reviewing evidence", body: "A dispute is open. Buyer, seller, and admin evidence will be recorded in the timeline.", tone: "red" };
+    case "closed":
+      return { title: "Order completed safely", body: "This order is closed. You can keep the receipt and leave a verified review when available.", tone: "green" };
+    default:
+      return { title: `${formatStatus(status)} status`, body: "Check the timeline for the latest evidence and next step.", tone: "sand" };
+  }
 }

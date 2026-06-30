@@ -9,7 +9,8 @@ export const metadata: Metadata = { title: "Admin Verification Queue", descripti
 
 export default async function AdminVerificationPage() {
   const { profile } = await getCurrentUserAndProfile();
-  if (!profile || !["admin", "operations"].includes(profile.role)) redirect("/login?next=/admin/verification");
+  if (!profile) redirect("/login?next=/admin/verification");
+  if (!["admin", "operations"].includes(profile.role)) redirect("/unauthorized");
   const sellers = await getAdminVerificationQueue();
   return (
     <AdminShell>

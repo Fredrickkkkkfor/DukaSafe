@@ -109,7 +109,7 @@ async function requireUser() {
 async function requireRole(roles: string[]) {
   const { supabase, user } = await requireUser();
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
-  if (!profile || !roles.includes(profile.role)) redirect("/");
+  if (!profile || !roles.includes(profile.role)) redirect("/unauthorized");
   return { supabase, user, profile };
 }
 
@@ -136,10 +136,17 @@ export async function signUpAction(formData: FormData) {
 export async function signInAction(formData: FormData) {
   if (!isSupabaseConfigured) redirect("/login?error=missing-supabase-env");
   const supabase = await createSupabaseServerClient();
-  const next = value(formData, "next") || "/";
+  const next = value(formData, "next");
   const { error } = await supabase.auth.signInWithPassword({ email: value(formData, "email"), password: value(formData, "password") });
   if (error) redirect(`/login?error=${encodeURIComponent(error.message)}`);
-  redirect(next);
+  if (next) redirect(next);
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+    if (profile?.role === "admin" || profile?.role === "operations") redirect("/admin/verification");
+    if (profile?.role === "seller") redirect("/seller/dashboard");
+  }
+  redirect("/orders");
 }
 
 export async function signOutAction() {

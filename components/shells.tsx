@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LayoutDashboard, PackagePlus, Search, ShieldCheck, UserRoundCheck } from "lucide-react";
+import { AlertTriangle, LayoutDashboard, PackageCheck, PackagePlus, Search, ShieldCheck, UserRoundCheck } from "lucide-react";
 import { Logo, LinkButton, cn } from "@/components/ui";
 import { getCurrentUserAndProfile } from "@/lib/data";
 
@@ -13,6 +13,7 @@ export async function PublicHeader() {
           <Link href="/check">Check a Seller</Link>
           <Link href="/#how">How It Works</Link>
           <Link href="/protection-charter">Buyer Protection</Link>
+          <Link href="/orders">My Orders</Link>
           <Link href="/seller/register">Verify My Shop</Link>
         </nav>
         <div className="flex items-center gap-2">
@@ -53,8 +54,8 @@ export async function SellerShell({ children }: { children: React.ReactNode }) {
       </div>
       <MobileNav items={[
         { href: "/seller/dashboard", label: "Home", icon: <LayoutDashboard className="h-5 w-5" /> },
-        { href: "/seller/create-link", label: "Link", icon: <PackagePlus className="h-5 w-5" /> },
-        { href: "/check", label: "Check", icon: <Search className="h-5 w-5" /> }
+        { href: "/seller/create-link", label: "Create", icon: <PackagePlus className="h-5 w-5" /> },
+        { href: "/seller/dashboard#disputes", label: "Disputes", icon: <AlertTriangle className="h-5 w-5" /> }
       ]} />
     </div>
   );
@@ -82,6 +83,16 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
         { href: "/check", label: "Check", icon: <Search className="h-5 w-5" /> }
       ]} />
     </div>
+  );
+}
+
+export function BuyerMobileNav() {
+  return (
+    <MobileNav items={[
+      { href: "/check", label: "Check", icon: <Search className="h-5 w-5" /> },
+      { href: "/orders", label: "Orders", icon: <PackageCheck className="h-5 w-5" /> },
+      { href: "/protection-charter", label: "Help", icon: <ShieldCheck className="h-5 w-5" /> }
+    ]} />
   );
 }
 

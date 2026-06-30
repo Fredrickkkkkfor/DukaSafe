@@ -66,7 +66,7 @@ export function Badge({ children, tone = "green" }: { children: React.ReactNode;
 
 export function TrustBadge({ score = 0, badge }: { score?: number | string | null; badge?: string | null }) {
   const numeric = Number(score ?? 0);
-  const label = badge || (numeric >= 90 ? "Elite Seller" : numeric >= 70 ? "Trusted Seller" : numeric >= 50 ? "Verified" : "Under Review");
+  const label = badge ? formatStatus(badge) : (numeric >= 90 ? "Elite Seller" : numeric >= 70 ? "Trusted Seller" : numeric >= 50 ? "Verified" : "Under Review");
   return (
     <Badge tone={numeric >= 90 ? "gold" : numeric >= 70 ? "green" : "sand"}>
       <ShieldCheck className="h-3.5 w-3.5" /> {label}
@@ -75,9 +75,80 @@ export function TrustBadge({ score = 0, badge }: { score?: number | string | nul
 }
 
 export function StatusBadge({ status }: { status?: string | null }) {
-  const safe = status?.replaceAll("_", " ") || "unknown";
+  const safe = formatStatus(status);
   const tone = status?.includes("reject") || status?.includes("failed") || status?.includes("cancel") ? "red" : status?.includes("pending") || status?.includes("review") ? "gold" : "green";
   return <Badge tone={tone}>{safe}</Badge>;
+}
+
+const statusLabels: Record<string, string> = {
+  draft: "Draft",
+  submitted: "Submitted",
+  pending: "Pending",
+  pending_review: "Under Review",
+  needs_more_info: "Needs More Info",
+  approved: "Verified",
+  rejected: "Rejected",
+  active: "Active",
+  suspended: "Suspended",
+  banned: "Banned",
+  archived: "Archived",
+  under_review: "Under Review",
+  verified: "Verified",
+  trusted: "Trusted Seller",
+  elite: "Elite Seller",
+  none: "No Badge",
+  payment_uploaded: "Payment Uploaded",
+  paid: "Paid",
+  dispatched: "Dispatched",
+  delivered: "Delivered",
+  closed: "Closed",
+  disputed: "Disputed",
+  refunded: "Refunded",
+  cancelled: "Cancelled",
+  proof_uploaded: "Proof Uploaded",
+  failed: "Failed",
+  open: "Open",
+  awaiting_seller_response: "Waiting for Seller",
+  awaiting_buyer_response: "Waiting for Buyer",
+  under_admin_review: "Under Review",
+  resolved: "Resolved",
+  dismissed: "Dismissed",
+  item_not_received: "Item Not Received",
+  wrong_item: "Wrong Item",
+  counterfeit_or_fake: "Counterfeit or Fake",
+  damaged_item: "Damaged Item",
+  seller_disappeared: "Seller Disappeared",
+  other: "Other",
+  uploaded: "Uploaded"
+};
+
+export function formatStatus(status?: string | null) {
+  if (!status) return "Unknown";
+  return statusLabels[status] || status.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+export function ActionPanel({ title, body, action, tone = "sand" }: { title: string; body: string; action?: React.ReactNode; tone?: "sand" | "green" | "red" | "gold" }) {
+  const tones = {
+    sand: "bg-sand text-forest",
+    green: "bg-emerald-50 text-forest",
+    red: "bg-red-50 text-red-800",
+    gold: "bg-amber/15 text-forest"
+  };
+  return (
+    <div className={cn("rounded-3xl p-4", tones[tone])}>
+      <p className="font-black">{title}</p>
+      <p className="mt-2 text-sm leading-6 opacity-80">{body}</p>
+      {action && <div className="mt-4">{action}</div>}
+    </div>
+  );
+}
+
+export function StickyMobileCTA({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-forest/10 bg-ivory/92 p-3 shadow-glass backdrop-blur-xl md:hidden">
+      <div className="mx-auto flex max-w-md gap-2">{children}</div>
+    </div>
+  );
 }
 
 export function MetricCard({ label, value, hint, icon }: { label: string; value: React.ReactNode; hint?: string; icon?: React.ReactNode }) {
@@ -119,7 +190,7 @@ export function Timeline({ events }: { events: Array<{ title?: string | null; no
           <span className="absolute left-0 top-1 grid h-6 w-6 place-items-center rounded-full bg-forest text-white ring-4 ring-sand">
             <span className="h-2 w-2 rounded-full bg-amber" />
           </span>
-          <p className="font-bold text-forest">{event.title || event.new_status?.replaceAll("_", " ") || "Status update"}</p>
+          <p className="font-bold text-forest">{event.title || formatStatus(event.new_status) || "Status update"}</p>
           {event.notes && <p className="mt-1 text-sm text-charcoal/70">{event.notes}</p>}
           {event.created_at && <p className="mt-1 text-xs text-sage">{new Date(event.created_at).toLocaleString()}</p>}
         </li>

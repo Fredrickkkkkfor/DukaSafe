@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { CreditCard, LockKeyhole, ShieldCheck } from "lucide-react";
 import { createOrderAction } from "@/lib/actions";
 import { getCurrentUserAndProfile, getProductForCheckout } from "@/lib/data";
-import { Badge, Button, Card, Input, Select, Stepper, Textarea, TrustBadge } from "@/components/ui";
+import { ActionPanel, Badge, Button, Card, Input, LinkButton, Select, Stepper, StickyMobileCTA, Textarea, TrustBadge } from "@/components/ui";
 import { PageShell, PublicHeader } from "@/components/shells";
 
 export const metadata: Metadata = { title: "Protected Checkout", description: "Place a DukaSafe protected order with M-PESA payment proof." };
@@ -13,6 +13,7 @@ export default async function CheckoutPage({ params }: { params: Promise<{ produ
   const { user } = await getCurrentUserAndProfile();
   const { product, seller } = await getProductForCheckout(route.productId);
   if (!product || !seller) redirect("/check");
+  const canCheckout = product.status === "active" && seller.verified && seller.seller_status === "active";
   const protectionFee = Math.max(50, Math.round(Number(product.price) * 0.03));
   const total = Number(product.price) + protectionFee;
   const needsAuth = !user && product.id !== "demo-product";
@@ -43,7 +44,14 @@ export default async function CheckoutPage({ params }: { params: Promise<{ produ
         <Card>
           <h2 className="text-2xl font-black text-forest">Complete protected order</h2>
           <div className="mt-4"><Stepper active={0} steps={["Pending", "Paid", "Dispatched", "Delivered", "Closed"]} /></div>
-          {needsAuth ? (
+          {!canCheckout ? (
+            <ActionPanel
+              title="Protected checkout paused"
+              body="This product link is no longer active, or the seller is not currently verified and active. Do not send money directly."
+              tone="red"
+              action={<LinkButton href={`/s/${seller.slug}`} variant="secondary">View seller profile</LinkButton>}
+            />
+          ) : needsAuth ? (
             <div className="mt-6 rounded-3xl bg-sand p-5">
               <p className="font-bold text-forest">Create a buyer account to place this protected order.</p>
               <a href={`/signup?next=/checkout/${product.id}`} className="mt-4 inline-flex rounded-2xl bg-forest px-5 py-3 font-bold text-white">Create account</a>
@@ -69,11 +77,16 @@ export default async function CheckoutPage({ params }: { params: Promise<{ produ
                 <div className="mt-2 flex justify-between text-sm"><span>Buyer protection fee</span><strong>KSh {protectionFee.toLocaleString()}</strong></div>
                 <div className="mt-3 flex justify-between border-t border-forest/10 pt-3 text-lg font-black text-forest"><span>Total</span><span>KSh {total.toLocaleString()}</span></div>
               </div>
-              <Button type="submit" className="md:col-span-2"><CreditCard className="h-4 w-4" /> Confirm Protected Order</Button>
+              <Button id="confirm-order" type="submit" className="md:col-span-2"><CreditCard className="h-4 w-4" /> Confirm Protected Order</Button>
             </form>
           )}
         </Card>
       </PageShell>
+      {canCheckout && !needsAuth && (
+        <StickyMobileCTA>
+          <a href="#confirm-order" className="inline-flex min-h-12 flex-1 items-center justify-center rounded-2xl bg-forest px-4 text-sm font-bold text-white">Confirm Protected Order</a>
+        </StickyMobileCTA>
+      )}
     </>
   );
 }

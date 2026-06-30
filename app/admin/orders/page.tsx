@@ -3,13 +3,14 @@ import { redirect } from "next/navigation";
 import { Download, Filter, ShieldAlert, ShoppingBag } from "lucide-react";
 import { getAdminOrders, getCurrentUserAndProfile } from "@/lib/data";
 import { AdminShell } from "@/components/shells";
-import { Badge, Card, DataTable, EmptyState, LinkButton, MetricCard, Select, StatusBadge } from "@/components/ui";
+import { Badge, Card, DataTable, EmptyState, LinkButton, MetricCard, Select, StatusBadge, formatStatus } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Admin Orders & Transactions", description: "Monitor DukaSafe orders, payments, delivery proofs, and disputes." };
 
 export default async function AdminOrdersPage() {
   const { profile } = await getCurrentUserAndProfile();
-  if (!profile || !["admin", "operations"].includes(profile.role)) redirect("/login?next=/admin/orders");
+  if (!profile) redirect("/login?next=/admin/orders");
+  if (!["admin", "operations"].includes(profile.role)) redirect("/unauthorized");
   const orders = await getAdminOrders();
   const completed = orders.filter((o: { status: string }) => o.status === "closed").length;
   const disputed = orders.filter((o: { disputes?: unknown[] }) => (o.disputes || []).length > 0).length;
@@ -36,8 +37,8 @@ export default async function AdminOrdersPage() {
         </section>
         <Card>
           <div className="grid gap-3 md:grid-cols-5">
-            <Select label="Status" name="status"><option>All statuses</option><option>pending</option><option>payment_uploaded</option><option>dispatched</option><option>closed</option><option>disputed</option></Select>
-            <Select label="Payment" name="payment"><option>All payments</option><option>pending</option><option>proof_uploaded</option><option>verified</option></Select>
+            <Select label="Status" name="status"><option>All statuses</option>{["pending", "payment_uploaded", "dispatched", "closed", "disputed"].map((status) => <option key={status} value={status}>{formatStatus(status)}</option>)}</Select>
+            <Select label="Payment" name="payment"><option>All payments</option>{["pending", "proof_uploaded", "verified"].map((status) => <option key={status} value={status}>{formatStatus(status)}</option>)}</Select>
             <Select label="Dispute" name="dispute"><option>All disputes</option><option>Open</option><option>Resolved</option></Select>
             <input className="min-h-12 rounded-2xl border border-forest/10 bg-white/80 px-4 text-sm md:mt-7" placeholder="Seller" />
             <button className="mt-0 inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-sand px-4 text-sm font-bold text-forest md:mt-7"><Filter className="h-4 w-4" /> Apply filters</button>
