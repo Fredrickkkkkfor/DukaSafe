@@ -431,14 +431,22 @@ export async function confirmDeliveryAction(formData: FormData) {
   const { supabase, user } = await requireUser();
   const orderId = value(formData, "order_id");
   const orderCode = value(formData, "order_code");
-  const { data: order } = await supabase.from("orders").select("id,buyer_id,status").eq("id", orderId).maybeSingle();
+  const { data: order } = await supabase.from("orders").select("id,buyer_id,seller_id,status,refund_window_hours").eq("id", orderId).maybeSingle();
   if (!order) throw new Error("Order not found.");
   if (order.buyer_id !== user.id) redirect("/unauthorized");
   if (!["dispatched", "delivered"].includes(order.status)) redirect(`/orders/${orderCode}?error=delivery-not-ready`);
-  await supabase.from("orders").update({ status: "closed", delivery_otp_confirmed_at: new Date().toISOString() }).eq("id", orderId);
+  const now = new Date();
+  const disputeWindowClosesAt = new Date(now.getTime() + Number(order.refund_window_hours || 24) * 60 * 60 * 1000).toISOString();
+  await supabase.from("orders").update({
+    status: "closed",
+    delivered_at: now.toISOString(),
+    delivery_otp_confirmed_at: now.toISOString(),
+    dispute_window_closes_at: disputeWindowClosesAt
+  }).eq("id", orderId);
+  await supabase.rpc("recalculate_seller_trust", { p_seller_id: order.seller_id });
   await supabase.from("order_status_events").insert({ order_id: orderId, changed_by: user.id, old_status: order.status, new_status: "closed", title: "Buyer confirmed delivery", notes: "Order closed and seller trust history updated." });
   revalidatePath(`/orders/${orderCode}`);
-  redirect(`/orders/${orderCode}`);
+  redirect(`/orders/${orderCode}?delivered=1`);
 }
 
 export async function raiseDisputeAction(formData: FormData) {

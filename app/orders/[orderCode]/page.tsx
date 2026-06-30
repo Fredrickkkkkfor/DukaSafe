@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: "Order Tracking", description: "Track
 
 const statuses = ["pending", "payment_uploaded", "paid", "dispatched", "delivered", "closed"];
 
-export default async function OrderTrackingPage({ params, searchParams }: { params: Promise<{ orderCode: string }>; searchParams: Promise<{ error?: string }> }) {
+export default async function OrderTrackingPage({ params, searchParams }: { params: Promise<{ orderCode: string }>; searchParams: Promise<{ error?: string; delivered?: string; reviewed?: string }> }) {
   const route = await params;
   const query = await searchParams;
   const { user, profile } = await getCurrentUserAndProfile();
@@ -42,6 +42,16 @@ export default async function OrderTrackingPage({ params, searchParams }: { para
                 <ActionPanel title="Action not available" body={orderErrorMessage(query.error)} tone="gold" />
               </div>
             )}
+            {query.delivered && (
+              <div className="mt-4">
+                <ActionPanel title="Delivery confirmed" body="Thanks. This order is closed, seller trust history has been updated, and you can now leave a verified review." tone="green" />
+              </div>
+            )}
+            {query.reviewed && (
+              <div className="mt-4">
+                <ActionPanel title="Review submitted" body="Your verified review is saved and will help other buyers understand this seller's track record." tone="green" />
+              </div>
+            )}
           </div>
           <Card className="rounded-3xl bg-sand">
             <StatusBadge status={order.status} />
@@ -64,6 +74,8 @@ export default async function OrderTrackingPage({ params, searchParams }: { para
                 <p><strong>Delivery:</strong> {order.delivery_location}</p>
                 <p><strong>Payment proof:</strong> {formatStatus(order.payment_status)}</p>
                 <p><strong>Delivery proof:</strong> {deliveryProofs.length ? "Uploaded" : "Pending"}</p>
+                <p><strong>Delivered:</strong> {order.delivered_at ? new Date(order.delivered_at).toLocaleString() : "Not confirmed yet"}</p>
+                <p><strong>Dispute window:</strong> {order.dispute_window_closes_at ? `Closes ${new Date(order.dispute_window_closes_at).toLocaleString()}` : "Opens after delivery confirmation"}</p>
               </div>
             </Card>
             <Card>
