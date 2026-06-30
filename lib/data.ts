@@ -88,6 +88,46 @@ export async function getSellerWorkspace() {
   return { user, profile, seller, products: products.data || [], orders: orders.data || [], reviews: reviews.data || [], disputes: disputes.data || [] };
 }
 
+export async function getSellerOrders() {
+  const { user, profile } = await getCurrentUserAndProfile();
+  if (!user || !isSupabaseConfigured) return { user, profile, seller: demoSeller, orders: [demoOrder] };
+  const supabase = await createSupabaseServerClient();
+  const { data: seller } = await supabase.from("sellers").select("*").eq("user_id", user.id).maybeSingle();
+  if (!seller) return { user, profile, seller: null, orders: [] };
+  const { data: orders } = await supabase
+    .from("orders")
+    .select("*, products(name), payments(*), delivery_proofs(*), disputes(*)")
+    .eq("seller_id", seller.id)
+    .order("created_at", { ascending: false });
+  return { user, profile, seller, orders: orders || [] };
+}
+
+export async function getSellerDisputes() {
+  const { user, profile } = await getCurrentUserAndProfile();
+  if (!user || !isSupabaseConfigured) return { user, profile, seller: demoSeller, disputes: [] };
+  const supabase = await createSupabaseServerClient();
+  const { data: seller } = await supabase.from("sellers").select("*").eq("user_id", user.id).maybeSingle();
+  if (!seller) return { user, profile, seller: null, disputes: [] };
+  const { data: disputes } = await supabase
+    .from("disputes")
+    .select("*, orders(order_code, item_name, amount, status), dispute_evidence(*)")
+    .eq("seller_id", seller.id)
+    .order("created_at", { ascending: false });
+  return { user, profile, seller, disputes: disputes || [] };
+}
+
+export async function getSellerDisputeByCode(disputeCode: string) {
+  const { user, profile } = await getCurrentUserAndProfile();
+  if (!user || !isSupabaseConfigured) return { user, profile, dispute: null };
+  const supabase = await createSupabaseServerClient();
+  const { data: dispute } = await supabase
+    .from("disputes")
+    .select("*, orders(*), sellers(*), dispute_evidence(*)")
+    .eq("dispute_code", disputeCode)
+    .maybeSingle();
+  return { user, profile, dispute };
+}
+
 export async function getAdminVerificationQueue() {
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase.from("sellers").select("*, seller_documents(*)").in("verification_status", ["submitted", "pending_review", "needs_more_info"]).order("submitted_at", { ascending: true });
@@ -97,6 +137,16 @@ export async function getAdminVerificationQueue() {
 export async function getAdminOrders() {
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase.from("orders").select("*, sellers(shop_name, slug), payments(*), delivery_proofs(*), disputes(*)").order("created_at", { ascending: false }).limit(80);
+  return data || [];
+}
+
+export async function getAdminReports() {
+  const supabase = await createSupabaseServerClient();
+  const { data } = await supabase
+    .from("seller_reports")
+    .select("*, sellers(shop_name, slug, trust_score, seller_status)")
+    .order("created_at", { ascending: false })
+    .limit(100);
   return data || [];
 }
 

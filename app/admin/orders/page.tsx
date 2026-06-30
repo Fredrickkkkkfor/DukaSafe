@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Download, Filter, ShieldAlert, ShoppingBag } from "lucide-react";
-import { getAdminOrders, getCurrentUserAndProfile } from "@/lib/data";
+import { getAdminOrders, getAdminReports, getCurrentUserAndProfile } from "@/lib/data";
 import { AdminShell } from "@/components/shells";
 import { Badge, Card, DataTable, EmptyState, LinkButton, MetricCard, Select, StatusBadge, formatStatus } from "@/components/ui";
 
@@ -11,7 +11,7 @@ export default async function AdminOrdersPage() {
   const { profile } = await getCurrentUserAndProfile();
   if (!profile) redirect("/login?next=/admin/orders");
   if (!["admin", "operations"].includes(profile.role)) redirect("/unauthorized");
-  const orders = await getAdminOrders();
+  const [orders, reports] = await Promise.all([getAdminOrders(), getAdminReports()]);
   const completed = orders.filter((o: { status: string }) => o.status === "closed").length;
   const disputed = orders.filter((o: { disputes?: unknown[] }) => (o.disputes || []).length > 0).length;
   const gmv = orders.reduce((sum: number, o: { total_amount?: number; amount: number }) => sum + Number(o.total_amount || o.amount || 0), 0);
@@ -33,7 +33,7 @@ export default async function AdminOrdersPage() {
           <MetricCard label="Completed" value={completed} />
           <MetricCard label="Disputed" value={disputed} icon={<ShieldAlert className="h-5 w-5" />} />
           <MetricCard label="GMV" value={`KSh ${gmv.toLocaleString()}`} />
-          <MetricCard label="Avg resolution" value="<72hr" />
+          <MetricCard label="Reports" value={reports.length} />
         </section>
         <Card>
           <div className="grid gap-3 md:grid-cols-5">

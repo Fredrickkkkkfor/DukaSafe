@@ -62,6 +62,15 @@ const disputeSchema = z.object({
   buyer_requested_outcome: z.string().optional()
 });
 
+const reviewSchema = z.object({
+  order_id: z.string().uuid(),
+  order_code: z.string().min(3),
+  seller_id: z.string().uuid(),
+  rating: z.coerce.number().int().min(1).max(5),
+  comment: z.string().min(5),
+  is_public: z.string().optional()
+});
+
 function value(formData: FormData, key: string) {
   const v = formData.get(key);
   return typeof v === "string" ? v.trim() : "";
@@ -316,6 +325,27 @@ export async function markDispatchedAction(formData: FormData) {
   redirect(`/orders/${orderCode}`);
 }
 
+export async function confirmPaymentAction(formData: FormData) {
+  const { supabase, user } = await requireUser();
+  const orderId = value(formData, "order_id");
+  const orderCode = value(formData, "order_code");
+  await supabase.from("orders").update({ status: "paid", payment_status: "verified", paid_at: new Date().toISOString() }).eq("id", orderId);
+  await supabase.from("payments").update({ status: "verified", verified_at: new Date().toISOString() }).eq("order_id", orderId);
+  await supabase.from("order_status_events").insert({ order_id: orderId, changed_by: user.id, old_status: "payment_uploaded", new_status: "paid", title: "Seller confirmed payment", notes: "Seller reviewed the uploaded proof and accepted payment." });
+  revalidatePath(`/orders/${orderCode}`);
+  redirect(`/orders/${orderCode}`);
+}
+
+export async function flagPaymentAction(formData: FormData) {
+  const { supabase, user } = await requireUser();
+  const orderId = value(formData, "order_id");
+  const orderCode = value(formData, "order_code");
+  const notes = value(formData, "notes") || "Payment proof needs DukaSafe review.";
+  await supabase.from("order_status_events").insert({ order_id: orderId, changed_by: user.id, new_status: "payment_uploaded", title: "Payment proof flagged for review", notes });
+  revalidatePath(`/orders/${orderCode}`);
+  redirect(`/orders/${orderCode}`);
+}
+
 export async function confirmDeliveryAction(formData: FormData) {
   const { supabase, user } = await requireUser();
   const orderId = value(formData, "order_id");
@@ -351,6 +381,39 @@ export async function raiseDisputeAction(formData: FormData) {
   await supabase.from("order_status_events").insert({ order_id: order.id, changed_by: user.id, new_status: "disputed", title: "Dispute opened", notes: parsed.title });
   revalidatePath(`/orders/${parsed.order_code}`);
   redirect(`/orders/${parsed.order_code}`);
+}
+
+export async function sellerRespondDisputeAction(formData: FormData) {
+  const { supabase, user } = await requireUser();
+  const disputeId = value(formData, "dispute_id");
+  const disputeCode = value(formData, "dispute_code");
+  const orderId = value(formData, "order_id");
+  const response = value(formData, "seller_response");
+  if (response.length < 20) throw new Error("Seller response must explain the evidence clearly.");
+  for (const file of filesFromForm(formData, "counter_evidence")) {
+    const uploaded = await uploadFile("dispute-evidence", user.id, file, `disputes/${disputeId}/seller`, false);
+    await supabase.from("dispute_evidence").insert({ dispute_id: disputeId, uploaded_by: user.id, evidence_type: "other", title: file.name, description: "Seller counter-evidence", storage_path: uploaded.path, mime_type: file.type, file_size_bytes: file.size });
+  }
+  await supabase.from("disputes").update({ seller_response: response, seller_responded_at: new Date().toISOString(), status: "under_admin_review" }).eq("id", disputeId);
+  await supabase.from("order_status_events").insert({ order_id: orderId, changed_by: user.id, new_status: "disputed", title: "Seller response submitted", notes: "Seller uploaded response and counter-evidence. DukaSafe operations will review both sides." });
+  revalidatePath(`/seller/disputes/${disputeCode}`);
+  redirect(`/seller/disputes/${disputeCode}`);
+}
+
+export async function createReviewAction(formData: FormData) {
+  const { supabase, user } = await requireUser();
+  const parsed = reviewSchema.parse(Object.fromEntries(formData));
+  await supabase.from("reviews").insert({
+    order_id: parsed.order_id,
+    buyer_id: user.id,
+    seller_id: parsed.seller_id,
+    rating: parsed.rating,
+    comment: parsed.comment,
+    is_public: parsed.is_public === "on",
+    is_verified_order: true
+  });
+  revalidatePath(`/orders/${parsed.order_code}`);
+  redirect(`/orders/${parsed.order_code}?reviewed=1`);
 }
 
 export async function reportSellerAction(formData: FormData) {

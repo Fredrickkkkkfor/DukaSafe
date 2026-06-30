@@ -20,7 +20,10 @@ export default async function SellerDashboardPage() {
             <h1 className="mt-3 text-4xl font-black text-forest">Welcome back, {seller.shop_name}</h1>
             <p className="mt-2 text-charcoal/70">Track trust score, active orders, disputes, reviews, and protected product links.</p>
           </div>
-          <LinkButton href="/seller/create-link"><PackagePlus className="h-4 w-4" /> Create protected link</LinkButton>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <LinkButton href="/seller/orders" variant="secondary">View Orders</LinkButton>
+            <LinkButton href="/seller/create-link"><PackagePlus className="h-4 w-4" /> Create protected link</LinkButton>
+          </div>
         </Card>
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <MetricCard label="Trust score" value={Math.round(Number(seller.trust_score || 0))} icon={<BadgeCheck className="h-5 w-5" />} />

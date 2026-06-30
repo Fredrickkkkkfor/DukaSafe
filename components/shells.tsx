@@ -46,7 +46,9 @@ export async function SellerShell({ children }: { children: React.ReactNode }) {
           <Logo compact />
           <nav className="mt-8 space-y-2 text-sm font-bold">
             <SideLink href="/seller/dashboard" icon={<LayoutDashboard className="h-4 w-4" />}>Dashboard</SideLink>
+            <SideLink href="/seller/orders" icon={<PackageCheck className="h-4 w-4" />}>Orders</SideLink>
             <SideLink href="/seller/create-link" icon={<PackagePlus className="h-4 w-4" />}>Create Link</SideLink>
+            <SideLink href="/seller/disputes" icon={<AlertTriangle className="h-4 w-4" />}>Disputes</SideLink>
             <SideLink href="/seller/register" icon={<UserRoundCheck className="h-4 w-4" />}>Verification</SideLink>
           </nav>
         </aside>
@@ -54,8 +56,9 @@ export async function SellerShell({ children }: { children: React.ReactNode }) {
       </div>
       <MobileNav items={[
         { href: "/seller/dashboard", label: "Home", icon: <LayoutDashboard className="h-5 w-5" /> },
+        { href: "/seller/orders", label: "Orders", icon: <PackageCheck className="h-5 w-5" /> },
         { href: "/seller/create-link", label: "Create", icon: <PackagePlus className="h-5 w-5" /> },
-        { href: "/seller/dashboard#disputes", label: "Disputes", icon: <AlertTriangle className="h-5 w-5" /> }
+        { href: "/seller/disputes", label: "Disputes", icon: <AlertTriangle className="h-5 w-5" /> }
       ]} />
     </div>
   );
@@ -72,6 +75,7 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
           <nav className="mt-6 space-y-2 text-sm font-bold">
             <SideLink href="/admin/verification" icon={<UserRoundCheck className="h-4 w-4" />}>Verification Queue</SideLink>
             <SideLink href="/admin/orders" icon={<LayoutDashboard className="h-4 w-4" />}>Orders & Transactions</SideLink>
+            <SideLink href="/admin/reports" icon={<AlertTriangle className="h-4 w-4" />}>Reports</SideLink>
             <SideLink href="/protection-charter" icon={<ShieldCheck className="h-4 w-4" />}>Policy</SideLink>
           </nav>
         </aside>
@@ -80,7 +84,7 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
       <MobileNav items={[
         { href: "/admin/verification", label: "Verify", icon: <UserRoundCheck className="h-5 w-5" /> },
         { href: "/admin/orders", label: "Orders", icon: <LayoutDashboard className="h-5 w-5" /> },
-        { href: "/check", label: "Check", icon: <Search className="h-5 w-5" /> }
+        { href: "/admin/reports", label: "Reports", icon: <AlertTriangle className="h-5 w-5" /> }
       ]} />
     </div>
   );

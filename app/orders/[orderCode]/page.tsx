@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PackageCheck, ShieldAlert, Truck } from "lucide-react";
-import { confirmDeliveryAction, markDispatchedAction } from "@/lib/actions";
+import { confirmDeliveryAction, createReviewAction, markDispatchedAction } from "@/lib/actions";
 import { getOrderByCode } from "@/lib/data";
 import { ActionPanel, Badge, Button, Card, DataTable, EmptyState, Input, LinkButton, StatusBadge, Stepper, StickyMobileCTA, Textarea, Timeline, formatStatus } from "@/components/ui";
 import { PageShell, PublicHeader } from "@/components/shells";
@@ -91,6 +91,24 @@ export default async function OrderTrackingPage({ params }: { params: Promise<{ 
             />
           </div>
         </Card>
+        {order.status === "closed" && (
+          <Card>
+            <h2 className="text-2xl font-black text-forest">Rate your seller</h2>
+            <p className="mt-2 text-sm text-charcoal/70">Your verified review helps other buyers shop safely and helps genuine sellers build trust.</p>
+            <form action={createReviewAction} className="mt-5 grid gap-4 md:grid-cols-[10rem_1fr]">
+              <input type="hidden" name="order_id" value={order.id} />
+              <input type="hidden" name="order_code" value={order.order_code} />
+              <input type="hidden" name="seller_id" value={order.seller_id} />
+              <Input label="Rating" name="rating" type="number" min={1} max={5} defaultValue={5} required />
+              <Textarea label="Comment" name="comment" required placeholder="Tell other buyers what went well." />
+              <label className="flex items-center gap-2 text-sm font-bold text-forest md:col-span-2">
+                <input type="checkbox" name="is_public" defaultChecked />
+                Show this review publicly on the seller profile
+              </label>
+              <Button type="submit" className="md:col-span-2">Submit Verified Review</Button>
+            </form>
+          </Card>
+        )}
       </PageShell>
       <StickyMobileCTA>
         <form action={confirmDeliveryAction} className="flex-1">
