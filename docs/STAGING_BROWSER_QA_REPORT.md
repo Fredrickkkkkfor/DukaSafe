@@ -383,3 +383,41 @@ Remaining blockers:
 Admin forensic verdict:
 
 Ready for controlled staging only. Admin operations are more evidence-forward and action-clear, but production launch still depends on deployed staging QA and secure evidence-preview verification.
+
+## 19. Final production edge closure
+
+Date: 2026-07-01
+
+Staging URL tested:
+
+- Not completed. A real deployed Netlify/staging URL was not available in this pass.
+
+What was advanced:
+
+- Added `docs/FINAL_PRODUCTION_EDGE_CHECKLIST.md`.
+- Added production cleanup, notification, operations SOP, payment/legal, and monitoring/incident readiness documents.
+- Added admin-only signed evidence preview links for seller documents, payment proof, delivery proof, and dispute evidence review surfaces.
+
+Expected result:
+
+- Deployed staging should load with live Supabase env vars, no demo mode, working Auth redirects, no serious browser console errors, and no exposed secrets.
+
+Actual result:
+
+- Blocked until a deployed staging URL is available and configured in Supabase Auth.
+
+Bugs/fixes made:
+
+- Fixed the previously documented secure evidence preview gap by adding server-side signed preview links on admin evidence review pages.
+
+Remaining blockers:
+
+- No deployed staging browser QA.
+- No deployed login/logout QA.
+- No full buyer/seller/admin E2E on deployed URL.
+- No physical phone QA on deployed URL.
+- Monitoring and notifications are planned but not implemented.
+
+Final staging verdict:
+
+Controlled staging only.

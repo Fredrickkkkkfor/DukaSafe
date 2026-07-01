@@ -66,3 +66,19 @@ Blocked until live buyer order exists and browser dispute flow is executed.
 ## Required Next Manual Run
 
 Use the controlled identities and seeded routes to complete the browser flows on staging. Record any new private order/dispute IDs in a private QA note, not in committed docs if they contain personal data.
+
+## Final Edge Closure Flow Status
+
+Date: 2026-07-01
+
+The requested full deployed browser E2E run was not completed because a real deployed staging URL was not available in this pass.
+
+Still required on deployed staging:
+
+- Buyer: check seller, open seller profile, checkout, upload M-PESA proof, track order, confirm delivery, raise dispute.
+- Seller: register, upload ID/passport, upload shop photo, submit verification, remain pending, create link after approval, view order, review proof, upload dispatch proof, respond to dispute.
+- Admin: view queue, view documents securely, request more info, reject seller, approve seller, inspect orders/proofs/disputes, resolve dispute, triage reports, manage sellers, view policy docs, confirm audit logs.
+
+Current manual-flow verdict:
+
+Controlled staging only. The flows are implemented and partially verified through local/LAN/live Supabase checks, but production launch requires the deployed browser run above.

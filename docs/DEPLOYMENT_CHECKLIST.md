@@ -83,3 +83,22 @@ Still recommended:
 ## Current Deployment Verdict
 
 Deployment config exists and live Auth/RLS/Storage smoke verification now passes. Deploy to controlled staging next; production launch should wait until the browser UI flows and mobile QA pass on the Netlify URL.
+
+## Final Edge Closure Update
+
+Date: 2026-07-01
+
+Real deployed staging was not verified in this pass because no Netlify/staging URL was provided.
+
+Required before launch:
+
+- Deploy current `main` to Netlify staging.
+- Configure `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in Netlify.
+- Add the Netlify staging URL to Supabase Auth Site URL and redirect allow list.
+- Confirm deployed login/logout and role-aware redirects.
+- Confirm deployed app is not in demo mode.
+- Inspect browser network/client bundle for accidental secret exposure.
+- Run deployed buyer, seller, and admin E2E flows.
+- Run physical phone QA against the deployed URL.
+
+Deployment verdict remains: controlled staging only.

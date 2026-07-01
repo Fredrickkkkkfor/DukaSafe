@@ -60,3 +60,29 @@ Result: no matches.
 ## Current Security Verdict
 
 Substantially improved. Core live RLS/storage smoke tests now pass after hardening. Final launch still needs expanded cross-user fixtures and browser-based admin/buyer/seller flow verification.
+
+## Final Edge Closure Update
+
+Date: 2026-07-01
+
+Additional fix:
+
+- Added server-side signed URL generation for authorized admin evidence previews.
+- Admin pages now use short-lived signed links for seller documents, payment proofs, delivery proofs, and dispute evidence instead of showing only metadata.
+
+Final security sweep still required on deployed staging:
+
+- Secret scan after final build.
+- Public cannot access private seller documents.
+- Public cannot access payment proof, delivery proof, or dispute evidence.
+- Buyer A cannot view Buyer B order.
+- Seller A cannot view Seller B order.
+- Seller cannot self-approve or edit trust fields.
+- Pending/suspended seller cannot create active product.
+- Non-admin cannot resolve disputes or access `/admin/*`.
+- Logout/back-button cache does not expose admin content.
+- Browser bundle does not include service-role or personal access tokens.
+
+Current security verdict:
+
+Strong enough for controlled staging. Not production launch-cleared until deployed attack tests and physical browser checks pass.

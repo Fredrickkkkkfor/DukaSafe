@@ -5,6 +5,7 @@ import { getCurrentUserAndProfile, getDisputeByCode } from "@/lib/data";
 import { AdminShell } from "@/components/shells";
 import { ActionPanel, Badge, Button, Card, DataTable, EmptyState, Input, Select, StatusBadge, Stepper, Textarea, Timeline, TrustBadge, formatStatus } from "@/components/ui";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
+import { SecureEvidenceLink } from "@/components/secure-evidence-link";
 
 export const metadata: Metadata = { title: "Admin Dispute Review", description: "Review DukaSafe dispute evidence and issue a resolution." };
 export const dynamic = "force-dynamic";
@@ -57,8 +58,8 @@ export default async function AdminDisputeReviewPage({ params }: { params: Promi
               <EvidencePanel title="Seller evidence" items={sellerEvidence} />
             </div>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <ProofPanel title="Payment proof" items={order?.payments || []} />
-              <ProofPanel title="Delivery proof" items={order?.delivery_proofs || []} />
+              <ProofPanel title="Payment proof" bucket="payment-proofs" items={order?.payments || []} />
+              <ProofPanel title="Delivery proof" bucket="delivery-proofs" items={order?.delivery_proofs || []} />
             </div>
             <div className="mt-6"><Timeline events={timeline} /></div>
           </Card>
@@ -127,13 +128,19 @@ function EvidencePanel({ title, items }: { title: string; items: Array<{ id: str
     <div className="rounded-3xl bg-white/70 p-4">
       <h3 className="font-black text-forest">{title}</h3>
       <div className="mt-3 grid gap-2 text-sm">
-        {items.length ? items.map((item) => <div key={item.id} className="rounded-2xl bg-sand p-3"><p className="font-bold">{item.title || formatStatus(item.evidence_type)}</p><p className="text-xs text-charcoal/60">{item.created_at ? new Date(item.created_at).toLocaleString() : "Uploaded"} - {item.mime_type || "file"} - {item.storage_path ? "private storage" : "metadata only"}</p></div>) : <p className="text-charcoal/60">No evidence uploaded yet.</p>}
+        {items.length ? items.map((item) => (
+          <div key={item.id} className="rounded-2xl bg-sand p-3">
+            <p className="font-bold">{item.title || formatStatus(item.evidence_type)}</p>
+            <p className="text-xs text-charcoal/60">{item.created_at ? new Date(item.created_at).toLocaleString() : "Uploaded"} - {item.mime_type || "file"} - {item.storage_path ? "private storage" : "metadata only"}</p>
+            <SecureEvidenceLink bucket="dispute-evidence" path={item.storage_path} label="Open dispute evidence" />
+          </div>
+        )) : <p className="text-charcoal/60">No evidence uploaded yet.</p>}
       </div>
     </div>
   );
 }
 
-function ProofPanel({ title, items }: { title: string; items: Array<{ id: string; status?: string; proof_storage_path?: string | null; storage_path?: string | null; created_at?: string | null; amount?: number; courier_name?: string | null }> }) {
+function ProofPanel({ title, bucket, items }: { title: string; bucket: string; items: Array<{ id: string; status?: string; proof_storage_path?: string | null; storage_path?: string | null; created_at?: string | null; amount?: number; courier_name?: string | null }> }) {
   return (
     <div className="rounded-3xl bg-white/70 p-4 ring-1 ring-forest/10">
       <h3 className="font-black text-forest">{title}</h3>
@@ -142,6 +149,7 @@ function ProofPanel({ title, items }: { title: string; items: Array<{ id: string
           <div key={item.id} className="rounded-2xl bg-sand p-3">
             <p className="font-bold">{item.status ? formatStatus(item.status) : item.courier_name || "Proof uploaded"}</p>
             <p className="text-xs text-charcoal/60">{item.created_at ? new Date(item.created_at).toLocaleString() : "Uploaded"} - {item.proof_storage_path || item.storage_path ? "private storage" : "metadata only"}</p>
+            <SecureEvidenceLink bucket={bucket} path={item.proof_storage_path || item.storage_path} label="Open protected proof" />
           </div>
         )) : <p className="text-charcoal/60">No proof uploaded yet.</p>}
       </div>

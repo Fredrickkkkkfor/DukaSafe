@@ -6,6 +6,7 @@ import { getAdminAuditLogs, getAdminSellers, getAdminVerificationQueue, getCurre
 import { AdminShell } from "@/components/shells";
 import { ActionPanel, Badge, Card, DataTable, EmptyState, Input, LinkButton, MetricCard, StatusBadge, TrustBadge, formatStatus } from "@/components/ui";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
+import { SecureEvidenceLink } from "@/components/secure-evidence-link";
 
 export const metadata: Metadata = { title: "Admin Verification Queue", description: "Review and approve DukaSafe seller applications." };
 export const dynamic = "force-dynamic";
@@ -71,6 +72,7 @@ export default async function AdminVerificationPage() {
                       <p className="font-black text-forest">{doc.title}</p>
                       <p className="text-xs text-charcoal/60">{formatStatus(doc.evidence_type)} - {doc.mime_type || "file"} - {doc.storage_path ? "private storage" : "metadata only"}</p>
                       <StatusBadge status={doc.review_status} />
+                      <SecureEvidenceLink bucket="seller-documents" path={doc.storage_path} label="Open protected document" />
                     </div>
                   ))}
                   {!seller.seller_documents?.length && <ActionPanel title="No documents attached" body="Request more information before approving. Private ID/shop proof must be reviewed through protected storage metadata or signed access." tone="gold" />}

@@ -191,3 +191,30 @@ Saved screenshot evidence from reviewed LAN captures:
 Admin mobile verdict:
 
 Improved and suitable for controlled staging. Not production-launch ready until deployed staging and physical tablet/phone admin QA pass with real evidence records.
+
+## Final physical phone QA requirement
+
+Date: 2026-07-01
+
+Physical phone QA was not completed in this pass because no deployed staging URL was available to test.
+
+Folder reserved for future evidence:
+
+- `docs/staging-screenshots/physical-phone-qa/`
+
+Required phone checks before launch:
+
+- Login/logout.
+- Check seller.
+- Public seller profile.
+- Checkout with M-PESA proof upload from gallery/camera.
+- Order tracking.
+- Dispute evidence upload.
+- Seller registration document/shop photo upload.
+- Seller create product image upload.
+- Seller dashboard and orders.
+- Admin verification/dispute review on tablet or phone where practical.
+
+Mobile verdict:
+
+Controlled staging only. Prior responsive layout work is materially improved, but production launch requires physical phone QA on the deployed staging URL.

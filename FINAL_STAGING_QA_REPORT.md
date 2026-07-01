@@ -269,3 +269,45 @@ Updated verdict:
 Ready for controlled staging only.
 
 The admin cockpit is now more production-grade and evidence-forward, but the app is still not production-launch ready until deployed staging, physical mobile/tablet, seller approval, dispute resolution, report update, and secure evidence-preview QA pass in the browser.
+
+## 21. Final production edge closure
+
+Date: 2026-07-01
+
+What changed:
+
+- Added the final production edge checklist.
+- Added production data cleanup report.
+- Added notification readiness plan.
+- Added operations SOP.
+- Added payment/legal readiness guidance.
+- Added monitoring and incident plan.
+- Added final production launch verdict.
+- Added server-side signed evidence preview links for admin seller documents, payment proof, delivery proof, and dispute evidence.
+
+What remains blocked:
+
+- Real deployed Netlify/staging URL was not provided or tested.
+- Supabase Auth redirects were not verified on deployed staging.
+- Full buyer/seller/admin browser E2E was not run on deployed staging.
+- Physical phone QA was not run on deployed staging.
+- Test data cleanup was prepared but not run because controlled fixtures are still needed for staging.
+- Notifications and monitoring are planned but not implemented.
+- Payment/legal wording still needs owner approval.
+
+Final verdict:
+
+Controlled staging only.
+
+This is the correct verdict until deployed staging, physical phone QA, evidence preview QA, final cleanup, and operations/legal readiness all pass.
+
+Final command results:
+
+- `pnpm install --frozen-lockfile`: passed.
+- `pnpm lint`: passed.
+- `pnpm typecheck`: passed.
+- `pnpm test`: passed.
+- `pnpm build`: passed.
+- `pnpm qa:postfix`: passed with a temporary local production server.
+- `pnpm audit --prod`: passed.
+- Redacted secret scan: passed.
