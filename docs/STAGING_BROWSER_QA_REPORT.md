@@ -257,3 +257,64 @@ Remaining blockers:
 Forensic UI verdict:
 
 Ready for controlled staging only. PRD alignment improved materially, but production launch still requires deployed/mobile QA and full upload-flow verification.
+
+## 17. Buyer interface forensic pass
+
+Date: 2026-07-01
+
+Screenshots reviewed from the user:
+
+- `/`
+- `/check`
+- `/orders`
+- `/protection-charter`
+- `/seller/register`
+
+Additional screenshots captured:
+
+- `docs/staging-screenshots/buyer-ui-pass/check-mobile.png`
+- `docs/staging-screenshots/buyer-ui-pass/check-desktop.png`
+- `docs/staging-screenshots/buyer-ui-pass/orders-mobile.png`
+- `docs/staging-screenshots/buyer-ui-pass/orders-desktop.png`
+- `docs/staging-screenshots/buyer-ui-pass/protection-mobile.png`
+- `docs/staging-screenshots/buyer-ui-pass/seller-register-mobile.png`
+
+Problems found:
+
+- Buyer navigation still needed a clearer bottom-nav profile path.
+- `/check` warning card and example/search flow needed stronger mobile readability and clearer not-found language.
+- `/orders` behaved too much like a thin order table instead of a protection hub.
+- `/checkout` and `/orders/[orderCode]/dispute` still used raw file inputs for buyer evidence.
+- `/orders/[orderCode]` needed a stronger seller trust/evidence summary.
+- `/seller/register` as a buyer upgrade path had hardcoded default shop/test-like values and raw upload inputs.
+- Protection charter explained policy but did not route buyers clearly to next actions.
+
+Fixes made:
+
+- Buyer bottom nav now includes `Check`, `Orders`, `Protect`, and `Profile`.
+- `/check` warning card now has readable amber styling, clickable example chips, verified/under-review/not-found result language, and calmer safety copy.
+- `/orders` now has buyer protection hub copy, clickable status filters, rich evidence-forward order cards, seller trust badges, payment/delivery/dispute status, next-step guidance, and mobile card behavior.
+- `/orders/[orderCode]` now includes seller trust, a buyer protection evidence checklist, and dispute status guidance.
+- `/checkout/[productId]` now uses the DukaSafe `FileUpload` component for M-PESA proof and has clearer protection/fee language.
+- `/orders/[orderCode]/dispute` now uses dispute type cards, visible 20-character guidance, an evidence upload component, and process timeline.
+- `/s/[sellerSlug]` now includes a direct safety reminder to use only protected checkout links.
+- `/protection-charter` now includes practical examples and CTAs for checking sellers, viewing orders, protected checkout, and seller verification.
+- `/seller/register` now explains the buyer-to-seller upgrade path, removes hardcoded default shop/social values for new applicants, and uses the premium upload component.
+
+Browser result:
+
+- `pnpm lint` and `pnpm typecheck` passed after fixes.
+- In-app browser screenshots saved successfully.
+- No serious browser console errors were captured on the buyer pages checked.
+- A 390px `/check` width check reported no horizontal overflow.
+
+Remaining blockers:
+
+- Deployed Netlify staging URL has not been tested.
+- Physical phone QA on the LAN URL is still required.
+- Browser file-picker upload checks for M-PESA proof and dispute evidence still need a real signed-in browser run.
+- Checkout form-data preservation across login interruption remains a known production polish gap.
+
+Buyer forensic verdict:
+
+Ready for controlled staging only. The buyer UI is now more trust-first and evidence-forward, but production launch still requires deployed staging, physical phone, and live upload-flow verification.

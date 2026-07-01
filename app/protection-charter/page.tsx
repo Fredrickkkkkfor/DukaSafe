@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { ShieldCheck } from "lucide-react";
 import { getPolicy } from "@/lib/data";
-import { Badge, Card, Stepper } from "@/components/ui";
+import { Badge, Card, LinkButton, Stepper } from "@/components/ui";
 import { PageShell, PublicHeader } from "@/components/shells";
 
 export const metadata: Metadata = { title: "Protection Charter", description: "DukaSafe buyer and seller protection rules." };
@@ -33,6 +33,23 @@ export default async function ProtectionCharterPage() {
             ["Neutral decisions", "Admins review both sides and can refund, partially refund, dismiss, or request more evidence."]
           ].map(([title, body]) => <Card key={title}><h3 className="text-xl font-black text-forest">{title}</h3><p className="mt-3 text-sm leading-6 text-charcoal/70">{body}</p></Card>)}
         </section>
+        <section className="grid gap-4 md:grid-cols-3">
+          {[
+            ["If the seller does not dispatch", "Open the order timeline, check whether payment proof was recorded, then raise a dispute if dispatch proof is missing."],
+            ["If the item is wrong", "Upload photos, describe what arrived, and keep the original order terms visible for admin review."],
+            ["If a buyer or seller disagrees", "Both sides can provide evidence. DukaSafe compares proof, dates, order terms, and delivery records before a resolution is logged."]
+          ].map(([title, body]) => <Card key={title} className="border border-amber/20 bg-amber/10"><h3 className="text-xl font-black text-forest">{title}</h3><p className="mt-3 text-sm leading-6 text-charcoal/75">{body}</p></Card>)}
+        </section>
+        <Card className="text-center">
+          <Badge tone="green">Ready to act</Badge>
+          <h2 className="mx-auto mt-4 max-w-2xl text-3xl font-black text-forest">Use the charter before money moves, not only after something goes wrong.</h2>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <LinkButton href="/check">Check a Seller</LinkButton>
+            <LinkButton href="/orders" variant="secondary">View My Orders</LinkButton>
+            <LinkButton href="/check" variant="secondary">Start Protected Checkout</LinkButton>
+            <LinkButton href="/seller/register" variant="secondary">Verify My Shop</LinkButton>
+          </div>
+        </Card>
       </PageShell>
     </>
   );

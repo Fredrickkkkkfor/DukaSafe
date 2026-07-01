@@ -5,6 +5,7 @@ import { createOrderAction } from "@/lib/actions";
 import { getCurrentUserAndProfile, getProductForCheckout } from "@/lib/data";
 import { ActionPanel, Badge, Button, Card, Input, LinkButton, Select, Stepper, StickyMobileCTA, Textarea, TrustBadge } from "@/components/ui";
 import { PageShell, PublicHeader } from "@/components/shells";
+import { FileUpload } from "@/components/file-upload";
 
 export const metadata: Metadata = { title: "Protected Checkout", description: "Place a DukaSafe protected order with M-PESA payment proof." };
 
@@ -63,6 +64,11 @@ export default async function CheckoutPage({ params, searchParams }: { params: P
               <ActionPanel title="Checkout paused" body="This product or seller is no longer active on DukaSafe. Do not send money directly." tone="red" />
             </div>
           )}
+          {query.error && !["payment-proof-required", "checkout-paused"].includes(query.error) && (
+            <div className="mt-5">
+              <ActionPanel title="Check your checkout details" body={query.error} tone="red" />
+            </div>
+          )}
           {!canCheckout ? (
             <ActionPanel
               title="Protected checkout paused"
@@ -93,12 +99,16 @@ export default async function CheckoutPage({ params, searchParams }: { params: P
                 {(product.available_sizes || []).map((size: string) => <option key={size}>{size}</option>)}
               </Select>
               <Input label="M-PESA receipt code" name="mpesa_receipt_code" placeholder="Example: SFA73..." />
-              <Input label="M-PESA payment screenshot" name="payment_proof" type="file" accept="image/png,image/jpeg,image/webp,application/pdf" required />
+              <div className="md:col-span-2">
+                <FileUpload name="payment_proof" label="M-PESA payment screenshot" accept="image/png,image/jpeg,image/webp,application/pdf" required hint="Upload a clear M-PESA screenshot or PDF receipt, up to 8 MB." />
+              </div>
               <Textarea label="Delivery notes" name="delivery_notes" className="md:col-span-2" />
               <div className="rounded-3xl bg-white/70 p-4 md:col-span-2">
                 <div className="flex justify-between text-sm"><span>Item</span><strong>KSh {Number(product.price).toLocaleString()}</strong></div>
                 <div className="mt-2 flex justify-between text-sm"><span>Buyer protection fee</span><strong>KSh {protectionFee.toLocaleString()}</strong></div>
+                <div className="mt-2 flex justify-between text-sm"><span>Delivery fee</span><strong>Confirm with seller</strong></div>
                 <div className="mt-3 flex justify-between border-t border-forest/10 pt-3 text-lg font-black text-forest"><span>Total</span><span>KSh {total.toLocaleString()}</span></div>
+                <p className="mt-3 rounded-2xl bg-sand p-3 text-sm leading-6 text-charcoal/70">Your order terms and payment proof are recorded before the seller dispatches. If something goes wrong, this evidence is used for dispute review.</p>
               </div>
               <Button id="confirm-order" type="submit" className="md:col-span-2"><CreditCard className="h-4 w-4" /> Confirm Protected Order</Button>
             </form>

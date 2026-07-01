@@ -3,12 +3,12 @@ import { notFound } from "next/navigation";
 import { PackageCheck, ShieldAlert, Truck } from "lucide-react";
 import { confirmDeliveryAction, createReviewAction, markDispatchedAction } from "@/lib/actions";
 import { getCurrentUserAndProfile, getOrderByCode } from "@/lib/data";
-import { ActionPanel, Badge, Button, Card, DataTable, EmptyState, Input, LinkButton, StatusBadge, Stepper, StickyMobileCTA, Textarea, Timeline, formatStatus } from "@/components/ui";
+import { ActionPanel, Badge, Button, Card, DataTable, EmptyState, Input, LinkButton, StatusBadge, Stepper, StickyMobileCTA, Textarea, Timeline, TrustBadge, formatStatus } from "@/components/ui";
 import { PageShell, PublicHeader } from "@/components/shells";
 
 export const metadata: Metadata = { title: "Order Tracking", description: "Track a DukaSafe protected order and evidence trail." };
 
-const statuses = ["pending", "payment_uploaded", "paid", "dispatched", "delivered", "closed"];
+const statuses = ["pending", "payment_uploaded", "paid", "dispatched", "delivered", "closed", "disputed"];
 
 export default async function OrderTrackingPage({ params, searchParams }: { params: Promise<{ orderCode: string }>; searchParams: Promise<{ error?: string; delivered?: string; reviewed?: string }> }) {
   const route = await params;
@@ -34,7 +34,7 @@ export default async function OrderTrackingPage({ params, searchParams }: { para
             <Badge tone="green">Order {order.order_code}</Badge>
             <h1 className="mt-4 text-4xl font-black text-forest">Track your protected order</h1>
             <p className="mt-2 text-charcoal/70">Every update is recorded as part of the buyer-seller evidence trail.</p>
-            <div className="mt-5"><Stepper active={active} steps={["Pending", "Payment proof", "Paid", "Dispatched", "Delivered", "Closed"]} /></div>
+            <div className="mt-5"><Stepper active={active} steps={["Pending", "Payment Uploaded", "Paid/Verified", "Dispatched", "Delivered", "Closed", "Disputed"]} /></div>
             <div className="mt-5">
               <ActionPanel title={next.title} body={next.body} tone={next.tone} />
             </div>
@@ -58,6 +58,7 @@ export default async function OrderTrackingPage({ params, searchParams }: { para
             <StatusBadge status={order.status} />
             <h2 className="mt-3 text-xl font-black text-forest">{order.item_name}</h2>
             <p className="mt-1 text-sm text-charcoal/65">{order.sellers?.shop_name}</p>
+            <div className="mt-3"><TrustBadge score={order.sellers?.trust_score} badge={order.sellers?.trust_badge} /></div>
             <p className="mt-4 text-2xl font-black">KSh {Number(order.total_amount || order.amount).toLocaleString()}</p>
           </Card>
         </Card>
@@ -79,6 +80,24 @@ export default async function OrderTrackingPage({ params, searchParams }: { para
                 <p><strong>Dispute window:</strong> {order.dispute_window_closes_at ? `Closes ${new Date(order.dispute_window_closes_at).toLocaleString()}` : "Opens after delivery confirmation"}</p>
               </div>
             </Card>
+            <Card>
+              <h2 className="text-xl font-black text-forest">Buyer protection status</h2>
+              <div className="mt-4 grid gap-3 text-sm">
+                <EvidenceRow label="Order terms" value="Recorded" />
+                <EvidenceRow label="Payment proof" value={payments.length ? "Recorded" : "Pending"} />
+                <EvidenceRow label="Seller confirmation" value={["paid", "dispatched", "delivered", "closed"].includes(order.status) ? "Recorded" : "Pending"} />
+                <EvidenceRow label="Delivery proof" value={deliveryProofs.length ? "Recorded" : "Pending"} />
+                <EvidenceRow label="Dispute evidence" value={disputes.length ? "Case opened" : "None"} />
+              </div>
+              <p className="mt-4 rounded-2xl bg-sand p-3 text-sm leading-6 text-charcoal/70">If something goes wrong, DukaSafe uses this timeline, payment proof, delivery proof, and dispute evidence to review the case.</p>
+            </Card>
+            {disputes[0] && (
+              <Card className="border border-red-200 bg-red-50">
+                <h2 className="text-xl font-black text-red-800">Dispute status</h2>
+                <div className="mt-3"><StatusBadge status={disputes[0].status} /></div>
+                <p className="mt-3 text-sm leading-6 text-red-900/75">DukaSafe is reviewing buyer and seller evidence. Follow this page for seller response, admin review, and final resolution updates.</p>
+              </Card>
+            )}
             <Card>
               <h2 className="text-xl font-black text-forest">Actions</h2>
               <div className="mt-4 grid gap-3">
@@ -188,4 +207,14 @@ function getNextAction(status: string): { title: string; body: string; tone: "sa
     default:
       return { title: `${formatStatus(status)} status`, body: "Check the timeline for the latest evidence and next step.", tone: "sand" };
   }
+}
+
+function EvidenceRow({ label, value }: { label: string; value: string }) {
+  const positive = ["Recorded", "Case opened"].includes(value);
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-2xl bg-white/75 px-4 py-3 ring-1 ring-forest/10">
+      <span className="font-bold text-forest">{label}</span>
+      <Badge tone={positive ? "green" : "sand"}>{value}</Badge>
+    </div>
+  );
 }

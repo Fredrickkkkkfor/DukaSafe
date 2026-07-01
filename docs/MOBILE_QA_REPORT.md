@@ -115,3 +115,45 @@ Forensic screenshot files saved from the automation pass:
 - `forensic-ui-pass/complete-profile-desktop.png`
 
 Note: the first automation pass captured some protected seller routes from an unauthenticated session before role login could be stabilized. Treat these as layout/error-state evidence, not final seller-workflow screenshots. A physical phone or stable deployed-browser pass should recapture the same filenames while signed in as seller/admin.
+
+## Buyer interface forensic mobile notes
+
+Date: 2026-07-01
+
+Buyer mobile fixes completed:
+
+- Buyer bottom nav now includes a Profile destination alongside Check, Orders, and Protect.
+- `/check` safety warning card was changed from low-contrast glass styling to readable amber styling.
+- `/check` example chips are tap targets that fill/search through query links.
+- `/orders` now uses stacked evidence cards for buyer order state instead of relying only on a desktop-style table.
+- Buyer order cards show payment proof, delivery proof, dispute status, seller trust, next step, and last update.
+- `/checkout/[productId]` uses the tappable DukaSafe upload component for M-PESA proof.
+- `/orders/[orderCode]/dispute` uses card-like dispute options and a tappable evidence upload control.
+- `/seller/register` from the buyer upgrade path now uses FileUpload controls and placeholders instead of hardcoded demo values.
+- `/protection-charter` now has practical examples and clear CTAs.
+
+Buyer screenshot files saved:
+
+- `buyer-ui-pass/check-mobile.png`
+- `buyer-ui-pass/orders-mobile.png`
+- `buyer-ui-pass/protection-mobile.png`
+- `buyer-ui-pass/seller-register-mobile.png`
+- `buyer-ui-pass/check-desktop.png`
+- `buyer-ui-pass/orders-desktop.png`
+
+Automated mobile checks:
+
+- `/check` at 390px reported `scrollWidth <= innerWidth`, so no horizontal overflow was detected.
+- No serious browser console errors were captured during the screenshot pass.
+
+Still required on physical phone or deployed staging:
+
+- Complete checkout with actual file picker upload.
+- Submit dispute evidence with actual file picker upload.
+- Confirm sticky CTAs do not cover form content during keyboard entry.
+- Verify `/orders` while authenticated as a buyer with live orders.
+- Verify public seller profile and checkout page on 320px and 360px physical widths.
+
+Buyer mobile verdict:
+
+Improved and suitable for controlled staging. Not production-launch ready until deployed staging and physical phone upload QA pass.

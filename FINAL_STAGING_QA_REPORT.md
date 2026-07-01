@@ -158,3 +158,60 @@ Current verdict:
 Ready for controlled staging only.
 
 This pass improves production polish and PRD alignment, but the app is still not production-launch ready until deployed Netlify QA, physical mobile QA, and full browser upload evidence flows pass.
+
+## 19. Buyer interface forensic pass
+
+Date: 2026-07-01
+
+Audit created:
+
+- `docs/BUYER_UI_FORENSIC_AUDIT.md`
+
+Screenshots reviewed:
+
+- User-provided `/`, `/check`, `/orders`, `/protection-charter`, and `/seller/register` screenshots.
+- Fresh screenshots saved under `docs/staging-screenshots/buyer-ui-pass/`.
+
+What was wrong:
+
+- Buyer navigation still had one ambiguous account/dashboard mental model.
+- `/check` warning copy and visual contrast were not calm/readable enough on mobile.
+- `/orders` did not yet feel like a buyer protection centre; it was too table-forward.
+- Buyer evidence upload surfaces still looked like native browser controls in checkout/dispute.
+- Order tracking needed a clearer seller trust and evidence checklist.
+- Public seller profile needed a stronger warning to use only protected checkout links.
+- Protection charter needed practical examples and final action routing.
+- Seller registration as a buyer upgrade path still contained hardcoded default shop/social values.
+
+What was fixed:
+
+- Buyer mobile nav now routes to Check, Orders, Protect, and Profile.
+- `/check` now has readable safety warning styling, clickable examples, clearer result states, and non-accusatory not-found copy.
+- `/orders` now has metrics, filters, rich order cards, seller trust, evidence status, dispute status, next steps, and a compact register.
+- `/orders/[orderCode]` now includes seller trust, buyer protection status rows, and clearer dispute guidance.
+- `/checkout/[productId]` uses a premium FileUpload for M-PESA proof and clearer protection/fee copy.
+- `/orders/[orderCode]/dispute` uses evidence-led type cards, upload UI, complaint guidance, and dispute process timeline.
+- `/s/[sellerSlug]` now warns buyers to use protected checkout links only.
+- `/protection-charter` now includes buyer examples and CTAs.
+- `/seller/register` now explains the buyer-to-seller upgrade path, removes hardcoded default shop/social values, and uses premium uploads.
+
+Checks completed:
+
+- `pnpm lint` passed after code changes.
+- `pnpm typecheck` passed after code changes.
+- Browser screenshots captured for key buyer routes.
+- `/check` at 390px reported no horizontal overflow.
+- No serious browser console errors were captured during the buyer screenshot pass.
+
+Remaining blockers:
+
+- Deployed Netlify staging URL has not been tested.
+- Physical phone QA is still required.
+- Signed-in checkout and dispute evidence upload flows still need real browser file-picker verification on staging.
+- Login interruption still returns to checkout but does not preserve all in-progress checkout form data.
+
+Updated verdict:
+
+Ready for controlled staging only.
+
+The buyer interface is now materially more production-grade, trust-first, evidence-forward, and mobile-aware. It is still not production-launch ready until deployed staging, real mobile, buyer checkout, order tracking, dispute upload, seller approval, and admin review flows all pass through the browser.

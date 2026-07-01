@@ -44,6 +44,14 @@ export default async function SellerProfilePage({ params }: { params: Promise<{ 
             action={<LinkButton href={`/report-concern?seller=${encodeURIComponent(seller.shop_name)}`} variant="secondary">Report Concern</LinkButton>}
           />
         )}
+        {isActive && (
+          <ActionPanel
+            title="Only use protected checkout links"
+            body="DukaSafe records the item, amount, M-PESA proof, delivery proof, and dispute evidence. Do not send money directly to a number outside this seller profile."
+            tone="gold"
+            action={<LinkButton href="#products" variant="secondary">View Protected Links</LinkButton>}
+          />
+        )}
 
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <MetricCard label="Trust score" value={`${Math.round(Number(seller.trust_score || 0))}/100`} icon={<ShieldCheck className="h-5 w-5" />} />

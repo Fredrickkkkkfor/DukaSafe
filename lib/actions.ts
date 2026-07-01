@@ -96,10 +96,16 @@ function filesFromForm(formData: FormData, key: string) {
   return formData.getAll(key).filter((item): item is File => item instanceof File && item.size > 0);
 }
 
-async function uploadFile(bucket: string, userId: string, file: File, folder: string, isPublic = false) {
-  if (file.size > 8 * 1024 * 1024) throw new Error("Files must be smaller than 8MB.");
+function uploadValidationMessage(file: File) {
+  if (file.size > 8 * 1024 * 1024) return "Files must be smaller than 8MB.";
   const allowed = ["image/png", "image/jpeg", "image/webp", "application/pdf"];
-  if (!allowed.includes(file.type)) throw new Error("Upload PNG, JPG, WEBP, or PDF files only.");
+  if (!allowed.includes(file.type)) return "Upload PNG, JPG, WEBP, or PDF files only.";
+  return null;
+}
+
+async function uploadFile(bucket: string, userId: string, file: File, folder: string, isPublic = false) {
+  const validationMessage = uploadValidationMessage(file);
+  if (validationMessage) throw new Error(validationMessage);
   const supabase = await createSupabaseServerClient();
   const ext = file.name.split(".").pop()?.toLowerCase() || "bin";
   const path = `${userId}/${folder}/${crypto.randomUUID()}.${ext}`;
@@ -336,7 +342,13 @@ export async function createProductAction(formData: FormData) {
 
 export async function createOrderAction(formData: FormData) {
   const { supabase, user } = await requireUser();
-  const parsed = checkoutSchema.parse(Object.fromEntries(formData));
+  const parsedResult = checkoutSchema.safeParse(Object.fromEntries(formData));
+  const fallbackProductId = value(formData, "product_id");
+  if (!parsedResult.success) {
+    const message = parsedResult.error.issues[0]?.message || "Check your checkout details and try again.";
+    redirect(`/checkout/${fallbackProductId}?error=${encodeURIComponent(message)}`);
+  }
+  const parsed = parsedResult.data;
   const { data: product } = await supabase.from("products").select("*, sellers(*)").eq("id", parsed.product_id).maybeSingle();
   if (!product) throw new Error("Product not found.");
   const seller = product.sellers;
@@ -345,6 +357,8 @@ export async function createOrderAction(formData: FormData) {
   }
   const proof = fileFromForm(formData, "payment_proof");
   if (!proof) redirect(`/checkout/${parsed.product_id}?error=payment-proof-required`);
+  const proofValidation = uploadValidationMessage(proof);
+  if (proofValidation) redirect(`/checkout/${parsed.product_id}?error=${encodeURIComponent(proofValidation)}`);
   const protectionFee = buyerProtectionFee(product.price);
   const { data: order, error } = await supabase.from("orders").insert({
     product_id: product.id,
@@ -367,7 +381,13 @@ export async function createOrderAction(formData: FormData) {
     payment_status: "pending"
   }).select("*").single();
   if (error) throw new Error(error.message);
-  const uploaded = await uploadFile("payment-proofs", user.id, proof, `orders/${order.id}`, false);
+  let uploaded: { path: string | null; url: string | null };
+  try {
+    uploaded = await uploadFile("payment-proofs", user.id, proof, `orders/${order.id}`, false);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Payment proof upload failed.";
+    redirect(`/checkout/${parsed.product_id}?error=${encodeURIComponent(message)}`);
+  }
   await supabase.from("payments").insert({
     order_id: order.id,
     amount: Number(product.price) + protectionFee,
@@ -486,6 +506,10 @@ export async function raiseDisputeAction(formData: FormData) {
     .in("status", ["open", "awaiting_seller_response", "awaiting_buyer_response", "under_admin_review"])
     .maybeSingle();
   if (existingDispute) redirect(`/orders/${parsed.order_code}?error=dispute-already-open`);
+  for (const file of filesFromForm(formData, "evidence")) {
+    const validationMessage = uploadValidationMessage(file);
+    if (validationMessage) redirect(`/orders/${parsed.order_code}/dispute?error=${encodeURIComponent(validationMessage)}`);
+  }
   const { data: dispute, error } = await supabase.from("disputes").insert({
     order_id: order.id,
     seller_id: order.seller_id,

@@ -5,6 +5,7 @@ import { registerSellerAction } from "@/lib/actions";
 import { getSellerWorkspace } from "@/lib/data";
 import { ActionPanel, Button, Card, Input, LinkButton, Select, StatusBadge, Stepper, Textarea, formatStatus } from "@/components/ui";
 import { PageShell, PublicHeader } from "@/components/shells";
+import { FileUpload } from "@/components/file-upload";
 
 export const metadata: Metadata = { title: "Seller Registration", description: "Apply for DukaSafe seller verification." };
 
@@ -41,6 +42,11 @@ export default async function SellerRegisterPage() {
         </Card>
         <form action={registerSellerAction} className="grid gap-5 lg:grid-cols-[1fr_0.55fr]">
           <div className="space-y-5">
+            <ActionPanel
+              title="You are about to create a seller profile"
+              body="Your buyer account remains active. Seller verification needs your phone, ID, shop proof, social links, and M-PESA details. You can create protected links only after DukaSafe approves the shop."
+              tone="sand"
+            />
             <Card>
               <SectionTitle icon={<Phone className="h-5 w-5" />} title="Phone and account" />
               <div className="mt-4 grid gap-4 md:grid-cols-2">
@@ -51,39 +57,40 @@ export default async function SellerRegisterPage() {
             <Card>
               <SectionTitle icon={<FileCheck2 className="h-5 w-5" />} title="Identity and proof" />
               <div className="mt-4 grid gap-4 md:grid-cols-2">
-                <Input label="ID or passport upload" name="id_document" type="file" accept="image/png,image/jpeg,image/webp,application/pdf" required />
-                <Input label="Shop photos" name="shop_photos" type="file" multiple accept="image/png,image/jpeg,image/webp" />
+                <FileUpload label="ID or passport upload" name="id_document" accept="image/png,image/jpeg,image/webp,application/pdf" required hint="Private review document. PNG, JPG, WEBP, or PDF up to 8 MB." />
+                <FileUpload label="Shop photos" name="shop_photos" multiple accept="image/png,image/jpeg,image/webp" hint="Upload shop, product, or social-commerce proof photos." />
               </div>
             </Card>
             <Card>
               <SectionTitle icon={<Store className="h-5 w-5" />} title="Shop details" />
               <div className="mt-4 grid gap-4 md:grid-cols-2">
-                <Input label="Shop name" name="shop_name" defaultValue={seller?.shop_name || "Aisha Styles Nairobi"} required />
-                <Select label="Category" name="category" defaultValue={seller?.category || "Fashion & Imported Clothing"}>
-                  <option>Fashion & Imported Clothing</option>
-                  <option>Footwear</option>
-                  <option>Beauty & Skincare</option>
-                  <option>Home & Living</option>
-                  <option>Accessories</option>
+                <Input label="Shop name" name="shop_name" defaultValue={seller?.shop_name || ""} placeholder="Your shop name" required />
+                <Select label="Category" name="category" defaultValue={seller?.category || ""} required>
+                  <option value="">Choose category</option>
+                  <option value="Fashion & Imported Clothing">Fashion & Imported Clothing</option>
+                  <option value="Footwear">Footwear</option>
+                  <option value="Beauty & Skincare">Beauty & Skincare</option>
+                  <option value="Home & Living">Home & Living</option>
+                  <option value="Accessories">Accessories</option>
                 </Select>
-                <Input label="City" name="location_city" defaultValue={seller?.location_city || "Nairobi"} required />
-                <Input label="Area" name="location_area" defaultValue={seller?.location_area || "CBD"} />
-                <Textarea label="Description" name="description" required className="md:col-span-2" defaultValue={seller?.description || "Verified Nairobi seller for curated social commerce fashion orders."} />
-                <Input label="Delivery regions" name="delivery_regions" defaultValue={Array.isArray(seller?.delivery_regions) ? seller.delivery_regions.join(", ") : "Nairobi, Nakuru, Naivasha, Nationwide courier"} required className="md:col-span-2" />
-                <Textarea label="Delivery terms" name="delivery_terms" required className="md:col-span-2" defaultValue={seller?.delivery_terms || "Same-day Nairobi CBD pickup and 24-48hr delivery within major towns."} />
-                <Textarea label="Refund policy" name="refund_policy" required className="md:col-span-2" defaultValue={seller?.refund_policy || "Refunds are reviewed within 24 hours when an item is wrong, damaged, or materially different from the order terms."} />
+                <Input label="City" name="location_city" defaultValue={seller?.location_city || ""} placeholder="Nairobi, Nakuru, Mombasa..." required />
+                <Input label="Area" name="location_area" defaultValue={seller?.location_area || ""} placeholder="CBD, Westlands, Pipeline..." />
+                <Textarea label="Description" name="description" required className="md:col-span-2" defaultValue={seller?.description || ""} placeholder="Describe what you sell and how customers usually find you." />
+                <Input label="Delivery regions" name="delivery_regions" defaultValue={Array.isArray(seller?.delivery_regions) ? seller.delivery_regions.join(", ") : ""} placeholder="Nairobi, Nakuru, Naivasha, countrywide courier..." required className="md:col-span-2" />
+                <Textarea label="Delivery terms" name="delivery_terms" required className="md:col-span-2" defaultValue={seller?.delivery_terms || ""} placeholder="Explain pickup, rider delivery, courier timing, and who pays delivery fees." />
+                <Textarea label="Refund policy" name="refund_policy" required className="md:col-span-2" defaultValue={seller?.refund_policy || ""} placeholder="Explain when refunds or exchanges are reviewed and what evidence is needed." />
                 <Input label="Refund window hours" name="refund_window_hours" type="number" defaultValue={seller?.refund_window_hours || 24} required />
               </div>
             </Card>
             <Card>
               <SectionTitle icon={<Link2 className="h-5 w-5" />} title="Social and M-PESA" />
               <div className="mt-4 grid gap-4 md:grid-cols-2">
-                <Input label="WhatsApp number" name="whatsapp_number" defaultValue={seller?.whatsapp_number || "+254712345678"} required />
+                <Input label="WhatsApp number" name="whatsapp_number" placeholder="+254..." defaultValue={seller?.whatsapp_number || ""} required />
                 <Input label="M-PESA number" name="mpesa_number" placeholder="+254..." defaultValue={seller?.mpesa_number || ""} />
                 <Input label="Till number" name="till_number" defaultValue={seller?.till_number || ""} />
                 <Input label="Paybill number" name="paybill_number" defaultValue={seller?.paybill_number || ""} />
-                <Input label="TikTok URL" name="tiktok_url" defaultValue={seller?.tiktok_url || "https://tiktok.com/@aisha.styles"} />
-                <Input label="Instagram URL" name="instagram_url" defaultValue={seller?.instagram_url || "https://instagram.com/aishastyles.nrb"} />
+                <Input label="TikTok URL" name="tiktok_url" placeholder="https://tiktok.com/@yourshop" defaultValue={seller?.tiktok_url || ""} />
+                <Input label="Instagram URL" name="instagram_url" placeholder="https://instagram.com/yourshop" defaultValue={seller?.instagram_url || ""} />
               </div>
             </Card>
           </div>

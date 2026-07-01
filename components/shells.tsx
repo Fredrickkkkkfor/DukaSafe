@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, FileSearch, LayoutDashboard, PackageCheck, PackagePlus, Search, ShieldCheck, UserRoundCheck, UsersRound } from "lucide-react";
+import { AlertTriangle, FileSearch, LayoutDashboard, PackageCheck, PackagePlus, Search, ShieldCheck, UserCircle, UserRoundCheck, UsersRound } from "lucide-react";
 import { Logo, LinkButton, cn } from "@/components/ui";
 import { getCurrentUserAndProfile } from "@/lib/data";
 
@@ -130,7 +130,8 @@ export function BuyerMobileNav() {
     <MobileNav items={[
       { href: "/check", label: "Check", icon: <Search className="h-5 w-5" /> },
       { href: "/orders", label: "Orders", icon: <PackageCheck className="h-5 w-5" /> },
-      { href: "/protection-charter", label: "Help", icon: <ShieldCheck className="h-5 w-5" /> }
+      { href: "/protection-charter", label: "Protect", icon: <ShieldCheck className="h-5 w-5" /> },
+      { href: "/complete-profile", label: "Profile", icon: <UserCircle className="h-5 w-5" /> }
     ]} />
   );
 }
@@ -141,7 +142,7 @@ function SideLink({ href, icon, children }: { href: string; icon: React.ReactNod
 
 export function MobileNav({ items }: { items: Array<{ href: string; label: string; icon: React.ReactNode }> }) {
   return (
-    <nav className="fixed inset-x-3 bottom-3 z-50 grid grid-cols-3 rounded-[26px] border border-white/70 bg-ivory/90 p-2 shadow-glass backdrop-blur-xl lg:hidden">
+    <nav className="fixed inset-x-3 bottom-3 z-50 grid rounded-[26px] border border-white/70 bg-ivory/90 p-2 shadow-glass backdrop-blur-xl lg:hidden" style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
       {items.map((item) => (
         <Link key={item.href} href={item.href} className="flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl text-xs font-black text-forest hover:bg-forest/5">
           {item.icon}

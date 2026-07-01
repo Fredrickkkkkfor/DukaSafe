@@ -9,11 +9,12 @@ type FileUploadProps = {
   label: string;
   accept?: string;
   required?: boolean;
+  multiple?: boolean;
   hint?: string;
   maxSizeMb?: number;
 };
 
-export function FileUpload({ name, label, accept = "image/png,image/jpeg,image/webp", required, hint, maxSizeMb = 8 }: FileUploadProps) {
+export function FileUpload({ name, label, accept = "image/png,image/jpeg,image/webp", required, multiple, hint, maxSizeMb = 8 }: FileUploadProps) {
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState("");
   const previewUrl = useMemo(() => file && file.type.startsWith("image/") ? URL.createObjectURL(file) : "", [file]);
@@ -31,8 +32,17 @@ export function FileUpload({ name, label, accept = "image/png,image/jpeg,image/w
           type="file"
           accept={accept}
           required={required}
+          multiple={multiple}
           onChange={(event) => {
-            const nextFile = event.currentTarget.files?.[0] || null;
+            const files = Array.from(event.currentTarget.files || []);
+            const nextFile = files[0] || null;
+            const tooLarge = files.find((selected) => selected.size > maxSizeMb * 1024 * 1024);
+            if (tooLarge) {
+              event.currentTarget.value = "";
+              setFile(null);
+              setError(`Every file must be ${maxSizeMb} MB or smaller.`);
+              return;
+            }
             if (nextFile && nextFile.size > maxSizeMb * 1024 * 1024) {
               event.currentTarget.value = "";
               setFile(null);
@@ -52,7 +62,7 @@ export function FileUpload({ name, label, accept = "image/png,image/jpeg,image/w
           <span className="grid min-h-36 place-items-center rounded-2xl bg-sand text-center">
             <span>
               <ImagePlus className="mx-auto h-7 w-7 text-sage" />
-              <span className="mt-2 block font-black text-forest">Tap to upload product photo</span>
+              <span className="mt-2 block font-black text-forest">Tap to upload file</span>
               <span className="mt-1 block text-xs text-charcoal/60">{hint || `PNG, JPG, or WEBP up to ${maxSizeMb} MB.`}</span>
             </span>
           </span>

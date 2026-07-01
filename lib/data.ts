@@ -91,7 +91,7 @@ export async function getBuyerOrders() {
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase
     .from("orders")
-    .select("*, sellers(shop_name, slug, trust_score, trust_badge), products(name)")
+    .select("*, sellers(shop_name, slug, trust_score, trust_badge, verified), products(name, product_image_url), payments(*), delivery_proofs(*), disputes(*)")
     .eq("buyer_id", user.id)
     .order("created_at", { ascending: false });
   return { user, profile, orders: data || [] };
