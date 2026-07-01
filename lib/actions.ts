@@ -447,7 +447,13 @@ export async function confirmDeliveryAction(formData: FormData) {
 
 export async function raiseDisputeAction(formData: FormData) {
   const { supabase, user } = await requireUser();
-  const parsed = disputeSchema.parse(Object.fromEntries(formData));
+  const parsedResult = disputeSchema.safeParse(Object.fromEntries(formData));
+  const fallbackOrderCode = value(formData, "order_code");
+  if (!parsedResult.success) {
+    const message = parsedResult.error.issues[0]?.message || "Check the dispute details and try again.";
+    redirect(`/orders/${encodeURIComponent(fallbackOrderCode)}/dispute?error=${encodeURIComponent(message)}`);
+  }
+  const parsed = parsedResult.data;
   const { data: order } = await supabase.from("orders").select("*").eq("id", parsed.order_id).maybeSingle();
   if (!order) throw new Error("Order not found.");
   if (order.buyer_id !== user.id) redirect("/unauthorized");

@@ -11,6 +11,11 @@ const lanDevOrigins = Object.values(networkInterfaces())
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   allowedDevOrigins: lanDevOrigins,
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "10mb"
+    }
+  },
   turbopack: {
     root
   },

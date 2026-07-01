@@ -7,8 +7,9 @@ import { PageShell, PublicHeader } from "@/components/shells";
 
 export const metadata: Metadata = { title: "Raise Dispute", description: "Raise a structured DukaSafe dispute with evidence." };
 
-export default async function RaiseDisputePage({ params }: { params: Promise<{ orderCode: string }> }) {
+export default async function RaiseDisputePage({ params, searchParams }: { params: Promise<{ orderCode: string }>; searchParams: Promise<{ error?: string }> }) {
   const route = await params;
+  const query = await searchParams;
   const { user } = await getCurrentUserAndProfile();
   if (!user) redirect(`/login?next=/orders/${route.orderCode}/dispute`);
   const { order } = await getOrderByCode(route.orderCode);
@@ -48,6 +49,7 @@ export default async function RaiseDisputePage({ params }: { params: Promise<{ o
         <Card>
           {canDispute ? (
             <form action={raiseDisputeAction} className="grid gap-4">
+              {query.error && <ActionPanel title="Check your dispute details" body={query.error} tone="red" />}
               <input type="hidden" name="order_id" value={order.id} />
               <input type="hidden" name="order_code" value={order.order_code} />
               <Select label="Dispute type" name="type" required>
@@ -58,8 +60,8 @@ export default async function RaiseDisputePage({ params }: { params: Promise<{ o
                 <option value="seller_disappeared">Seller disappeared</option>
                 <option value="other">Other</option>
               </Select>
-              <Input label="Short title" name="title" required />
-              <Textarea label="Complaint text" name="summary" required placeholder="Describe what happened clearly." />
+              <Input label="Short title" name="title" required minLength={3} />
+              <Textarea label="Complaint text" name="summary" required minLength={20} placeholder="Describe what happened clearly in at least 20 characters." />
               <Textarea label="Requested outcome" name="buyer_requested_outcome" placeholder="Refund, replacement, partial refund..." />
               <Input label="Evidence uploads" name="evidence" type="file" multiple accept="image/png,image/jpeg,image/webp,application/pdf" />
               <ActionPanel title="Evidence helps" body="If you can add a screenshot or photo, it helps DukaSafe resolve faster. Item-not-received cases may still be submitted when physical evidence is not available." tone="sand" />
