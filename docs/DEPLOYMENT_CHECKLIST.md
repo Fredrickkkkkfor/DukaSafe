@@ -1,6 +1,6 @@
 # Deployment Checklist
 
-Last updated: 2026-07-01
+Last updated: 2026-07-01 final closure pass
 
 ## Required Environment Variables
 
@@ -14,7 +14,7 @@ Server-only if needed for future admin automation:
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `SUPABASE_ACCESS_TOKEN`
 
-Never expose server-only secrets to the browser.
+Never expose server-only secrets to the browser. Rotate the personal access token pasted in chat before production deployment.
 
 ## Supabase Configuration
 
@@ -28,6 +28,7 @@ Never expose server-only secrets to the browser.
   - `delivery-proofs`
   - `dispute-evidence`
 - Confirm storage policies protect private buckets.
+- Confirm `supabase_rls_hardening.sql` has been applied after any database reset.
 - Add production URL to Supabase Auth Site URL.
 - Add production and deploy preview URLs to Supabase Auth redirect allow list.
 - Configure email auth.
@@ -41,6 +42,8 @@ pnpm install
 pnpm lint
 pnpm typecheck
 pnpm build
+pnpm test
+pnpm verify:rls
 ```
 
 Netlify:
@@ -79,4 +82,4 @@ Still recommended:
 
 ## Current Deployment Verdict
 
-Deployment config exists, but production deployment should wait until live Auth/RLS/Storage flow verification is complete.
+Deployment config exists and live Auth/RLS/Storage smoke verification now passes. Deploy to controlled staging next; production launch should wait until the browser UI flows and mobile QA pass on the Netlify URL.

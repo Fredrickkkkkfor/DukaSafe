@@ -1,6 +1,6 @@
 # DukaSafe Production Readiness Audit
 
-Last updated: 2026-07-01
+Last updated: 2026-07-01 final closure pass
 
 ## 1. What Already Exists
 
@@ -113,6 +113,6 @@ Storage bucket names were reachable through anon storage list calls for all expe
 
 ## Current Readiness Verdict
 
-Not yet safe to claim production-ready.
+Ready for controlled staging testing, but not yet safe to claim final production-ready.
 
-The app is substantially scaffolded and now safer against silent demo mode, but true production readiness still requires live seeded test identities, real Auth/Storage/RLS flow verification, admin signed document review, generated database types, and an automated/manual E2E evidence trail.
+The app now has live seeded test identities, real Auth sign-in checks, real Storage upload checks, RLS attack-test coverage, and a live RLS hardening patch. True production readiness still requires browser-based buyer/seller/admin flow verification, admin signed document previews, generated database types, and full mobile screenshot QA on staging.

@@ -7,7 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "create:test-identities": "tsx scripts/create-test-identities.ts",
+    "seed:live-test-data": "tsx scripts/seed-live-test-data.ts",
+    "cleanup:live-test-data": "tsx scripts/cleanup-live-test-data.ts",
+    "verify:rls": "tsx scripts/run-live-rls-smoke-tests.ts",
+    "apply:rls-hardening": "tsx scripts/apply-rls-hardening.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -32,6 +38,8 @@
     "eslint-config-next": "16.2.9",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.16",
-    "typescript": "^5.7.2"
+    "tsx": "^4.22.4",
+    "typescript": "^5.7.2",
+    "vitest": "^4.1.9"
   }
 }

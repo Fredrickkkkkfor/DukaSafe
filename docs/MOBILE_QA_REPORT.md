@@ -1,6 +1,6 @@
 # Mobile QA Report
 
-Last updated: 2026-07-01
+Last updated: 2026-07-01 final closure pass
 
 ## Scope
 
@@ -24,6 +24,7 @@ Target widths requested:
 - Admin pages are responsive but need more deliberate mobile drawer/card interactions for real evidence review.
 - Forms generally use large controls and labels, but seller registration is long and should become true multi-step on mobile.
 - No automated horizontal overflow scan has been run yet.
+- Live route smoke passed for public seeded seller/product/order routes, but visual screenshot QA was not automated in this pass.
 
 ## High-Priority Mobile Follow-Up
 
@@ -35,4 +36,4 @@ Target widths requested:
 
 ## Current Mobile Verdict
 
-Responsive baseline is good, but mobile production QA is incomplete until automated viewport screenshots and interactive file-upload checks are run.
+Responsive baseline is good, but mobile production QA is incomplete until automated viewport screenshots and interactive file-upload checks are run on the Netlify staging URL.

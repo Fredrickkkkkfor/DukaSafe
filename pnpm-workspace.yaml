@@ -1,10 +1,15 @@
 packages:
   - .
 
+overrides:
+  postcss: ^8.5.10
+
 allowBuilds:
+  esbuild: true
   sharp: true
   unrs-resolver: true
 
 onlyBuiltDependencies:
+  - esbuild
   - sharp
   - unrs-resolver

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CheckCircle2, ShieldCheck } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { formatStatusLabel, trustBadgeLabel } from "@/lib/domain";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -66,7 +67,7 @@ export function Badge({ children, tone = "green" }: { children: React.ReactNode;
 
 export function TrustBadge({ score = 0, badge }: { score?: number | string | null; badge?: string | null }) {
   const numeric = Number(score ?? 0);
-  const label = badge ? formatStatus(badge) : (numeric >= 90 ? "Elite Seller" : numeric >= 70 ? "Trusted Seller" : numeric >= 50 ? "Verified" : "Under Review");
+  const label = trustBadgeLabel(numeric, badge);
   return (
     <Badge tone={numeric >= 90 ? "gold" : numeric >= 70 ? "green" : "sand"}>
       <ShieldCheck className="h-3.5 w-3.5" /> {label}
@@ -80,51 +81,8 @@ export function StatusBadge({ status }: { status?: string | null }) {
   return <Badge tone={tone}>{safe}</Badge>;
 }
 
-const statusLabels: Record<string, string> = {
-  draft: "Draft",
-  submitted: "Submitted",
-  pending: "Pending",
-  pending_review: "Under Review",
-  needs_more_info: "Needs More Info",
-  approved: "Verified",
-  rejected: "Rejected",
-  active: "Active",
-  suspended: "Suspended",
-  banned: "Banned",
-  archived: "Archived",
-  under_review: "Under Review",
-  verified: "Verified",
-  trusted: "Trusted Seller",
-  elite: "Elite Seller",
-  none: "No Badge",
-  payment_uploaded: "Payment Uploaded",
-  paid: "Paid",
-  dispatched: "Dispatched",
-  delivered: "Delivered",
-  closed: "Closed",
-  disputed: "Disputed",
-  refunded: "Refunded",
-  cancelled: "Cancelled",
-  proof_uploaded: "Proof Uploaded",
-  failed: "Failed",
-  open: "Open",
-  awaiting_seller_response: "Waiting for Seller",
-  awaiting_buyer_response: "Waiting for Buyer",
-  under_admin_review: "Under Review",
-  resolved: "Resolved",
-  dismissed: "Dismissed",
-  item_not_received: "Item Not Received",
-  wrong_item: "Wrong Item",
-  counterfeit_or_fake: "Counterfeit or Fake",
-  damaged_item: "Damaged Item",
-  seller_disappeared: "Seller Disappeared",
-  other: "Other",
-  uploaded: "Uploaded"
-};
-
 export function formatStatus(status?: string | null) {
-  if (!status) return "Unknown";
-  return statusLabels[status] || status.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+  return formatStatusLabel(status);
 }
 
 export function ActionPanel({ title, body, action, tone = "sand" }: { title: string; body: string; action?: React.ReactNode; tone?: "sand" | "green" | "red" | "gold" }) {

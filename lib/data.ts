@@ -1,6 +1,7 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { demoEvents, demoOrder, demoProducts, demoReviews, demoSeller } from "@/lib/demo";
 import { isDemoMode, isSupabaseConfigured } from "@/lib/env";
+import { normalizeSellerSearch } from "@/lib/domain";
 
 export async function getCurrentUserAndProfile() {
   if (!isSupabaseConfigured) return { user: null, profile: null };
@@ -42,14 +43,13 @@ export async function getSellerBySlug(slug: string) {
 }
 
 export async function searchSellers(query: string) {
-  const q = query.trim();
-  if (!q) return [];
+  const cleaned = normalizeSellerSearch(query);
+  if (!cleaned) return [];
   if (isDemoMode) {
-    return [demoSeller].filter((seller) => `${seller.shop_name} ${seller.slug} ${seller.whatsapp_number}`.toLowerCase().includes(q.toLowerCase().replace("https://", "")));
+    return [demoSeller].filter((seller) => `${seller.shop_name} ${seller.slug} ${seller.whatsapp_number}`.toLowerCase().includes(cleaned));
   }
   if (!isSupabaseConfigured) return [];
   const supabase = await createSupabaseServerClient();
-  const cleaned = q.replace(/^https?:\/\//, "").replace(/^www\./, "");
   const { data } = await supabase
     .from("sellers")
     .select("*")

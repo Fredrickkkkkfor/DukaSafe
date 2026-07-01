@@ -1,16 +1,16 @@
 # Supabase Connection Report
 
-Last updated: 2026-07-01
+Last updated: 2026-07-01 final closure pass
 
 ## Connection
 
 - Connected: Yes, using local `.env.local`.
 - Project host detected: `istlyvpfwyazqmaarbyt.supabase.co`.
 - Public anon key present: Yes.
-- Service role key present locally: No.
-- Personal access token present in app runtime env: Not detected in `.env.local`.
+- Service role key present locally: Yes, only in gitignored `.env.local`.
+- Personal access token present locally: Yes, only in gitignored `.env.local` for management automation.
 
-No secrets were printed or written to this report.
+No secrets were printed or written to this report. The personal access token shared in chat must be rotated before production launch.
 
 ## Tables Checked
 
@@ -46,14 +46,14 @@ Expected buckets:
 
 Anon storage list calls returned OK for all expected bucket names, with zero sampled objects.
 
-Important: because no service role key is present locally and buckets are empty, this does not prove private file protection. It does show the bucket APIs are reachable. Private storage RLS must be verified with real uploaded objects and unauthenticated access attempts.
+Final closure update: `pnpm verify:rls` uploaded and removed real test objects in every expected bucket. Private payment proof public download was blocked, admin signed URL creation passed, and intended public shop photo access passed.
 
 ## RLS Status
 
 - SQL file enables RLS on application tables and defines policies.
-- Live policy presence was not introspected because local service role/database credentials are not available.
-- Anon table count queries returning OK with zero visible rows is not sufficient proof of correct RLS.
-- Private storage bucket list calls returning OK require follow-up verification with real files.
+- Live RLS/storage smoke tests were run with buyer, seller, and admin identities.
+- Two RLS gaps were found and fixed through `supabase_rls_hardening.sql`.
+- `pnpm verify:rls` passed after the hardening SQL was applied.
 
 ## Schema Mismatches / Typing Gaps
 
@@ -64,10 +64,10 @@ Important: because no service role key is present locally and buckets are empty,
 
 ## Required Follow-Up
 
-1. Add service role key only to server-side local/deployment env for admin verification scripts, or use Supabase CLI/database connection for policy introspection.
-2. Generate database types from the live project.
-3. Upload test private files and prove unauthenticated access fails.
-4. Create buyer/seller/admin test identities and run RLS negative tests.
+1. Generate database types from the live project.
+2. Add signed document previews to admin verification UI.
+3. Complete browser-based E2E flows on staging.
+4. Rotate the personal access token shared in chat before launch.
 
 ## Demo Mode Audit Result
 

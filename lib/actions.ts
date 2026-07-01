@@ -6,6 +6,7 @@ import { z } from "zod";
 import { isSupabaseConfigured, requireSupabaseConfig } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getRoleHome } from "@/lib/data";
+import { buyerProtectionFee, listFromText, slugify } from "@/lib/domain";
 
 const phoneSchema = z.string().regex(/^\+?[0-9]{7,15}$/, "Use a valid phone number with country code");
 const moneySchema = z.coerce.number().min(0);
@@ -84,14 +85,6 @@ const profileSchema = z.object({
 function value(formData: FormData, key: string) {
   const v = formData.get(key);
   return typeof v === "string" ? v.trim() : "";
-}
-
-function listFromText(text: string) {
-  return text.split(",").map((item) => item.trim()).filter(Boolean);
-}
-
-function slugify(input: string) {
-  return input.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "dukasafe-item";
 }
 
 function fileFromForm(formData: FormData, key: string) {
@@ -333,7 +326,7 @@ export async function createOrderAction(formData: FormData) {
   }
   const proof = fileFromForm(formData, "payment_proof");
   if (!proof) redirect(`/checkout/${parsed.product_id}?error=payment-proof-required`);
-  const protectionFee = Math.max(50, Math.round(Number(product.price) * 0.03));
+  const protectionFee = buyerProtectionFee(product.price);
   const { data: order, error } = await supabase.from("orders").insert({
     product_id: product.id,
     seller_id: product.seller_id,

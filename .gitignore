@@ -8,6 +8,7 @@ dist/
 .next-dev*.log
 network-dev.log
 prod-smoke.log
+prod-smoke.err.log
 npm-debug.log*
 pnpm-debug.log*
 yarn-debug.log*

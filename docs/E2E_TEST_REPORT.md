@@ -1,21 +1,27 @@
 # E2E Test Report
 
-Last updated: 2026-07-01
+Last updated: 2026-07-01 final closure pass
 
 ## Automated Tests Present
 
-- No dedicated unit test framework is configured.
-- No Playwright E2E suite is configured.
-- Current quality gates are `pnpm lint`, `pnpm typecheck`, and `pnpm build`.
+- Vitest is configured.
+- Unit tests exist in `tests/domain.test.ts`.
+- No Playwright E2E suite is configured yet.
+- Current quality gates are `pnpm lint`, `pnpm typecheck`, `pnpm build`, `pnpm test`, and `pnpm verify:rls`.
 
 ## Minimum Tests Still Needed
 
-Unit tests:
+Added unit tests:
 
-- `formatStatus`
-- trust badge label/tone helper behavior
+- status label mapping
+- trust badge label helper
 - check-seller input normalization
 - buyer protection fee calculation
+- total calculation
+- slug/list helpers
+
+Still needed:
+
 - zod validation schemas
 
 Integration/server-action tests:
@@ -40,7 +46,13 @@ Playwright E2E:
 
 ## Live Supabase Test Data Strategy
 
-The live database is mostly empty. To run meaningful E2E:
+Live seed data now exists:
+
+- seller slug: `test-dukasafe-seller`
+- product checkout route: `/checkout/eaf5f0f8-543d-4007-9ac2-a8b7e8883483`
+- order code: `DS-2607-9F432F`
+
+To run full browser E2E:
 
 1. Create buyer test account.
 2. Create seller test account.
@@ -54,4 +66,4 @@ The live database is mostly empty. To run meaningful E2E:
 
 ## Current E2E Verdict
 
-Not complete. Smoke tests returning 200 are useful but do not prove production readiness.
+Not complete. Live RLS/storage and route smoke tests are stronger now, but full browser E2E has not been automated.

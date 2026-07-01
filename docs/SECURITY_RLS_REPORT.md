@@ -1,12 +1,12 @@
 # Security and RLS Report
 
-Last updated: 2026-07-01
+Last updated: 2026-07-01 final closure pass
 
 ## Security Rules Checked In Code
 
 - No Supabase secret is hardcoded in source code by app logic.
 - `.env.local` is gitignored.
-- Service role key is not present in local `.env.local`.
+- Service role key is present only in gitignored `.env.local` for server-side/local verification scripts.
 - Frontend uses only public Supabase URL/anon key.
 - Admin pages perform server-side role checks through profile role.
 - Several server actions now enforce explicit buyer/seller ownership and status checks instead of relying only on RLS.
@@ -16,28 +16,32 @@ Last updated: 2026-07-01
 
 - Anon table count queries completed without errors and returned zero visible rows for private app data.
 - `policy_documents` returned four published rows.
-- Storage bucket list calls returned OK for all buckets with zero objects.
+- Controlled buyer/seller/admin identities were created.
+- `pnpm verify:rls` passed after live RLS hardening.
+- Buyer can read own order.
+- Seller can read own order.
+- Public cannot read private order.
+- Seller cannot self-mutate `verified` or `trust_score`.
+- Suspended seller cannot create active product.
+- Seller/buyer storage uploads passed for all expected buckets.
+- Public private-proof read was blocked.
+- Admin signed URL generation for private proof passed.
 
 ## RLS Checks Still Required
 
-Using three real test identities:
+Still recommended with expanded fixtures:
 
-- Buyer cannot read another buyer order.
-- Buyer cannot read seller documents.
-- Seller cannot read another seller orders.
-- Seller cannot approve self or mutate `verified`, `trust_score`, `seller_status`, or admin fields.
-- Public cannot read private evidence/document object URLs.
-- Admin can review verification and disputes.
-- Private storage objects require signed/authenticated access.
-- Public product/shop images are readable only when intended.
+- Buyer A cannot read Buyer B order.
+- Seller A cannot read Seller B order.
+- Non-admin cannot resolve dispute.
+- Pending seller cannot create active product with a separate pending fixture.
+- Full admin dispute review through UI.
 
 ## Known Risks
 
-- Storage list calls returning OK for expected buckets must be verified with actual uploaded private files.
-- Admin document preview is not implemented with signed URLs.
-- No service role key locally means admin storage and policy introspection could not be fully audited.
+- Admin document preview is not implemented with signed URLs in the UI, though storage policy permits admin signed URL access.
 - `reportSellerAction` requires an authenticated user, while product requirements imply public reporting may be needed.
-- Live database has no test user records, so cross-identity RLS has not been proven.
+- The personal access token pasted in chat must be rotated before launch.
 
 ## Secret Scan Plan
 
@@ -55,4 +59,4 @@ Result: no matches.
 
 ## Current Security Verdict
 
-Improved, but RLS and private storage are not fully verified. Not launch-ready until cross-identity tests pass.
+Substantially improved. Core live RLS/storage smoke tests now pass after hardening. Final launch still needs expanded cross-user fixtures and browser-based admin/buyer/seller flow verification.
