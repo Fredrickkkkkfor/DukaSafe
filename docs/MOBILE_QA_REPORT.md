@@ -1,6 +1,6 @@
 # Mobile QA Report
 
-Last updated: 2026-07-01 final closure pass
+Last updated: 2026-07-01 staging browser QA pass
 
 ## Scope
 
@@ -25,6 +25,8 @@ Target widths requested:
 - Forms generally use large controls and labels, but seller registration is long and should become true multi-step on mobile.
 - No automated horizontal overflow scan has been run yet.
 - Live route smoke passed for public seeded seller/product/order routes, but visual screenshot QA was not automated in this pass.
+- Staging browser QA confirmed a 390px viewport could be applied and the landing page had no horizontal overflow.
+- Extended viewport screenshot automation timed out before the full matrix completed.
 
 ## High-Priority Mobile Follow-Up
 
@@ -37,3 +39,14 @@ Target widths requested:
 ## Current Mobile Verdict
 
 Responsive baseline is good, but mobile production QA is incomplete until automated viewport screenshots and interactive file-upload checks are run on the Netlify staging URL.
+
+## Staging Screenshot Evidence
+
+Desktop screenshots saved under `docs/staging-screenshots/`:
+
+- `landing-desktop.png`
+- `check-desktop.png`
+- `seller-profile-desktop.png`
+- `checkout-desktop.png`
+- `login-desktop.png`
+- `signup-desktop.png`

@@ -9,6 +9,9 @@ dist/
 network-dev.log
 prod-smoke.log
 prod-smoke.err.log
+prod-staging.log
+prod-staging.err.log
+prod-staging.pid
 npm-debug.log*
 pnpm-debug.log*
 yarn-debug.log*
