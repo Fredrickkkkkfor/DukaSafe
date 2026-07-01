@@ -1,14 +1,20 @@
 import type { Metadata } from "next";
-import { Copy, MessageCircle, PackagePlus } from "lucide-react";
+import { headers } from "next/headers";
+import { PackagePlus } from "lucide-react";
 import { createProductAction } from "@/lib/actions";
 import { getSellerWorkspace } from "@/lib/data";
 import { ActionPanel, Button, Card, Input, LinkButton, Select, Textarea, TrustBadge, formatStatus } from "@/components/ui";
 import { SellerShell } from "@/components/shells";
+import { ShareLinkActions } from "@/components/share-link-actions";
 
 export const metadata: Metadata = { title: "Create Protected Link", description: "Create a DukaSafe protected product checkout link." };
 
-export default async function CreateLinkPage({ searchParams }: { searchParams: Promise<{ created?: string }> }) {
+export default async function CreateLinkPage({ searchParams }: { searchParams: Promise<{ created?: string; error?: string }> }) {
   const query = await searchParams;
+  const requestHeaders = await headers();
+  const host = requestHeaders.get("host");
+  const proto = requestHeaders.get("x-forwarded-proto") || "http";
+  const baseUrl = host ? `${proto}://${host}` : undefined;
   const { seller, products } = await getSellerWorkspace();
   const canCreateLinks = Boolean(seller?.verified && seller.seller_status === "active" && seller.verification_status === "approved");
   return (
@@ -17,6 +23,7 @@ export default async function CreateLinkPage({ searchParams }: { searchParams: P
         <Card>
           <h1 className="text-4xl font-black text-forest">Create a protected order link</h1>
           <p className="mt-2 text-charcoal/70">Share this link on TikTok, WhatsApp, or Instagram instead of posting a raw M-PESA number.</p>
+          {query.error && <div className="mt-5"><ActionPanel title="Check your product link" body={query.error} tone="red" /></div>}
           {!seller ? (
             <ActionPanel
               title="Verification required"
@@ -68,10 +75,7 @@ export default async function CreateLinkPage({ searchParams }: { searchParams: P
             <Card>
               <h2 className="text-xl font-black text-forest">Link generated</h2>
               <p className="mt-2 break-all rounded-2xl bg-sand p-3 text-sm">/checkout/{query.created}</p>
-              <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                <LinkButton href={`/checkout/${query.created}`} variant="secondary"><Copy className="h-4 w-4" /> Open</LinkButton>
-                <a className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-forest px-4 py-3 text-sm font-bold text-white" href={`https://wa.me/?text=${encodeURIComponent(`Shop safely with DukaSafe: /checkout/${query.created}`)}`}><MessageCircle className="h-4 w-4" /> WhatsApp</a>
-              </div>
+              <ShareLinkActions path={`/checkout/${query.created}`} baseUrl={baseUrl} />
             </Card>
           )}
           <Card>

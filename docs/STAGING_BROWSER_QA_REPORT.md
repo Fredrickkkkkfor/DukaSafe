@@ -148,3 +148,64 @@ Mobile screenshot capture was attempted but timed out in browser control before 
 Ready for controlled staging only.
 
 The app is not ready for production launch until the real deployed staging URL passes full buyer/seller/admin browser flows and mobile QA.
+
+## 15. Post-fix regression after upload/dispute validation fixes
+
+Date: 2026-07-01
+
+Test target:
+
+- Local staging/dev browser target: `http://127.0.0.1:3000`
+- LAN target available for phone/manual check: `http://192.168.100.14:3000`
+- Controlled identities used: buyer, seller, and admin test accounts from local env; passwords were not printed.
+
+What was tested:
+
+- Product image upload regression against live Supabase `product-images` storage.
+- Protected link product row creation/update with a live uploaded image.
+- Public seller profile rendering of the product image.
+- Public checkout route for the generated product.
+- Admin UI login redirect to `/admin/verification`.
+- Admin access to `/admin/verification`, `/admin/orders`, `/admin/reports`, and `/admin/disputes/DSP-2607-1C68C6`.
+- Buyer and seller admin-route blocking.
+- Dispute route rendering for buyer-owned order `DS-2607-9F432F`.
+- Empty and short dispute complaint validation.
+- Valid dispute creation and order timeline update.
+- Browser console checks on the touched routes.
+
+Passes:
+
+- Under-1 MB, 3 MB, and near-8 MB product image uploads succeeded in live storage.
+- Above-8 MB product upload is blocked by the app validator and now redirects through a friendly create-link error path instead of surfacing a raw Next.js body-limit crash.
+- Next Server Action body limit was raised to `15mb`; app-level upload limit remains `8 MB`.
+- E2E post-fix product `a565e6c3-3c16-4abc-a6ba-bf3073c013c4` was created/updated in Supabase.
+- Seller profile and checkout route both returned 200 and rendered the generated product.
+- Product image is now displayed on the public seller profile.
+- Create-link generated state renders Copy, Open, and WhatsApp actions.
+- Admin browser login redirected to `/admin/verification`.
+- Admin routes loaded with no captured console errors.
+- Buyer and seller admin attempts now land on `/unauthorized`.
+- The nested dispute page now loads for the buyer-owned order instead of returning 404.
+- Empty dispute fields stay in browser validation.
+- Short dispute complaint redirects back with a friendly page error; no raw `ZodError` appears.
+- A valid dispute submission created dispute `DSP-2607-1C68C6`, changed order `DS-2607-9F432F` to `disputed`, and added a timeline event.
+
+Fixes made:
+
+- Raised Server Action body limit from `10mb` to `15mb`.
+- Added friendly product validation/upload error redirects in `createProductAction`.
+- Added real generated-link copy/share controls.
+- Fixed WhatsApp/copy link generation to use the browser origin after hydration.
+- Rendered product images on public seller profile product cards.
+- Scoped the dispute page order lookup by authenticated `buyer_id`.
+- Opted current-user lookup out of cross-request caching and forced admin pages dynamic.
+
+Still not fully completed:
+
+- File-picker automation for browser evidence uploads is not supported by the current in-app browser API, so dispute evidence upload remains covered by prior live storage/RLS checks plus manual phone QA.
+- Physical phone QA on the LAN URL still needs the user to confirm from an actual device.
+- Netlify deployed staging URL is still not available in repo/config.
+
+Post-fix verdict:
+
+Ready for controlled staging only. The runtime regressions found in upload/dispute/admin route checks were fixed, but production launch still needs deployed Netlify browser QA and physical phone upload checks.

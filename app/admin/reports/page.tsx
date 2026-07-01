@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: "Admin Reports",
   description: "Review DukaSafe seller safety reports."
 };
+export const dynamic = "force-dynamic";
 
 export default async function AdminReportsPage() {
   const { profile } = await getCurrentUserAndProfile();

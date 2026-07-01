@@ -83,3 +83,42 @@ No app logic bugs were fixed because the pass did not produce a confirmed code-l
 Ready for controlled staging only.
 
 Exact next step: deploy the pushed `main` branch to Netlify, configure Supabase Auth redirect URLs for that Netlify URL, then rerun this browser QA on the actual deployed staging URL.
+
+## 17. Post-fix regression after upload/dispute validation fixes
+
+Date: 2026-07-01
+
+Commit under regression at start: `2cac30e Fix upload and dispute validation errors`
+
+Additional fixes made in this pass:
+
+- Raised Next Server Action body limit to `15mb` while keeping the app upload validator at `8 MB`.
+- Added friendly create-link redirects for product validation/upload errors.
+- Added real generated-link Copy/Open/WhatsApp controls.
+- Fixed generated share URLs to use the browser origin after hydration.
+- Rendered product images on public seller profile product cards.
+- Fixed buyer dispute route 404 by scoping order lookup to authenticated `buyer_id`.
+- Forced current-user lookup/admin pages out of cross-request caching so admin route guards do not leak cached content.
+
+Regression results:
+
+- Product image uploads under 1 MB, around 3 MB, and near 8 MB passed against live Supabase storage.
+- Above-8 MB upload path is blocked by app validation and handled as a friendly create-link error.
+- Protected link product `a565e6c3-3c16-4abc-a6ba-bf3073c013c4` exists in Supabase and opens at `/checkout/a565e6c3-3c16-4abc-a6ba-bf3073c013c4`.
+- Seller profile shows the generated product and uploaded image.
+- Admin login through browser reaches `/admin/verification`.
+- Admin can access verification, orders, reports, and dispute review.
+- Buyer and seller accounts are blocked from admin pages.
+- Dispute empty/short complaint validation no longer crashes with raw Zod errors.
+- Valid dispute submission created `DSP-2607-1C68C6`, moved order `DS-2607-9F432F` to `disputed`, and added a timeline event.
+- Serious browser console errors were not captured on the post-fix routes after the fixes.
+
+Remaining limitations:
+
+- Browser file-picker automation could not attach dispute evidence through the in-app browser; live storage/RLS evidence bucket checks remain the coverage for private evidence uploads.
+- Physical phone QA on `http://192.168.100.14:3000` still needs manual confirmation.
+- Actual Netlify staging URL is still not tested.
+
+Updated verdict:
+
+Ready for controlled staging only. The upload/dispute/admin route regressions are fixed, but production launch still requires deployed Netlify QA and physical mobile upload verification.

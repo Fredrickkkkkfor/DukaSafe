@@ -13,7 +13,7 @@ const nextConfig = {
   allowedDevOrigins: lanDevOrigins,
   experimental: {
     serverActions: {
-      bodySizeLimit: "10mb"
+      bodySizeLimit: "15mb"
     }
   },
   turbopack: {

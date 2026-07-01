@@ -7,6 +7,7 @@ import { AdminShell } from "@/components/shells";
 import { Button, Card, DataTable, EmptyState, Input, MetricCard, StatusBadge, TrustBadge } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Admin Verification Queue", description: "Review and approve DukaSafe seller applications." };
+export const dynamic = "force-dynamic";
 
 export default async function AdminVerificationPage() {
   const { profile } = await getCurrentUserAndProfile();

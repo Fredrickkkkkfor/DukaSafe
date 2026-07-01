@@ -50,3 +50,31 @@ Desktop screenshots saved under `docs/staging-screenshots/`:
 - `checkout-desktop.png`
 - `login-desktop.png`
 - `signup-desktop.png`
+
+## Post-fix regression after upload/dispute validation fixes
+
+Date: 2026-07-01
+
+LAN URL for phone testing:
+
+- `http://192.168.100.14:3000`
+
+Mobile-relevant fixes verified at code/browser level:
+
+- Server Action body limit is now `15mb`, leaving room for multipart overhead while the app validator remains capped at `8 MB`.
+- Product upload failures now route to a friendly create-link page error.
+- Dispute complaint minimum length is enforced in the UI and short submissions return a friendly page error.
+- The buyer-owned dispute page now loads correctly instead of returning 404.
+- Product images render on mobile-friendly seller profile cards because product cards now include the public image URL.
+- Generated link actions use full URLs for copy/share after hydration.
+- Buyer and seller admin-route attempts are blocked with the mobile-friendly unauthorized page.
+
+Manual phone status:
+
+- LAN server is reachable from the host at `http://192.168.100.14:3000`.
+- Physical phone interaction was not directly observable from this automation session.
+- User should still open the LAN URL on the phone and check login, seller dashboard, create protected link, checkout, dispute page, and admin verification page if signed in as admin.
+
+Current post-fix mobile verdict:
+
+Ready for controlled staging only. The specific upload/dispute regressions were fixed, but physical phone upload and viewport QA remain required before production launch.

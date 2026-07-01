@@ -285,13 +285,24 @@ export async function registerSellerAction(formData: FormData) {
 
 export async function createProductAction(formData: FormData) {
   const { supabase, user } = await requireUser();
-  const parsed = productSchema.parse(Object.fromEntries(formData));
+  const parsedResult = productSchema.safeParse(Object.fromEntries(formData));
+  if (!parsedResult.success) {
+    const message = parsedResult.error.issues[0]?.message || "Check the product details and try again.";
+    redirect(`/seller/create-link?error=${encodeURIComponent(message)}`);
+  }
+  const parsed = parsedResult.data;
   const { data: seller } = await supabase.from("sellers").select("*").eq("user_id", user.id).maybeSingle();
   if (!seller) redirect("/seller/register");
   if (seller.seller_status === "suspended" || seller.seller_status === "banned") redirect("/account-restricted");
   if (!seller.verified || seller.seller_status !== "active" || seller.verification_status !== "approved") redirect("/seller/pending");
   const image = fileFromForm(formData, "product_image");
-  const uploaded = image ? await uploadFile("product-images", user.id, image, "products", true) : { path: null, url: null };
+  let uploaded: { path: string | null; url: string | null } = { path: null, url: null };
+  try {
+    uploaded = image ? await uploadFile("product-images", user.id, image, "products", true) : uploaded;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Upload failed. Check the image and try again.";
+    redirect(`/seller/create-link?error=${encodeURIComponent(message)}`);
+  }
   const { data: product, error } = await supabase.from("products").insert({
     seller_id: seller.id,
     name: parsed.name,
@@ -312,6 +323,7 @@ export async function createProductAction(formData: FormData) {
   const shareUrl = `/checkout/${product.id}`;
   await supabase.from("products").update({ share_url: shareUrl }).eq("id", product.id);
   revalidatePath("/seller/dashboard");
+  revalidatePath(`/s/${seller.slug}`);
   redirect(`/seller/create-link?created=${product.id}`);
 }
 

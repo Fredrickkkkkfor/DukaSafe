@@ -13,6 +13,7 @@
     "seed:live-test-data": "tsx scripts/seed-live-test-data.ts",
     "cleanup:live-test-data": "tsx scripts/cleanup-live-test-data.ts",
     "verify:rls": "tsx scripts/run-live-rls-smoke-tests.ts",
+    "qa:postfix": "tsx scripts/postfix-regression-qa.ts",
     "apply:rls-hardening": "tsx scripts/apply-rls-hardening.ts"
   },
   "dependencies": {

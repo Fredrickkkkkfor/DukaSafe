@@ -1,9 +1,11 @@
+import { unstable_noStore as noStore } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { demoEvents, demoOrder, demoProducts, demoReviews, demoSeller } from "@/lib/demo";
 import { isDemoMode, isSupabaseConfigured } from "@/lib/env";
 import { normalizeSellerSearch } from "@/lib/domain";
 
 export async function getCurrentUserAndProfile() {
+  noStore();
   if (!isSupabaseConfigured) return { user: null, profile: null };
   const supabase = await createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();

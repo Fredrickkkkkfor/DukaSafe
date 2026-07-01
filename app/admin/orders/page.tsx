@@ -6,6 +6,7 @@ import { AdminShell } from "@/components/shells";
 import { Badge, Card, DataTable, EmptyState, LinkButton, MetricCard, Select, StatusBadge, formatStatus } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Admin Orders & Transactions", description: "Monitor DukaSafe orders, payments, delivery proofs, and disputes." };
+export const dynamic = "force-dynamic";
 
 export default async function AdminOrdersPage() {
   const { profile } = await getCurrentUserAndProfile();

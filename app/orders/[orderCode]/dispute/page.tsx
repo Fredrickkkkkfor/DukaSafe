@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { raiseDisputeAction } from "@/lib/actions";
-import { getCurrentUserAndProfile, getOrderByCode } from "@/lib/data";
+import { getCurrentUserAndProfile } from "@/lib/data";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ActionPanel, Button, Card, Input, LinkButton, Select, StatusBadge, StickyMobileCTA, Textarea } from "@/components/ui";
 import { PageShell, PublicHeader } from "@/components/shells";
 
@@ -12,9 +13,14 @@ export default async function RaiseDisputePage({ params, searchParams }: { param
   const query = await searchParams;
   const { user } = await getCurrentUserAndProfile();
   if (!user) redirect(`/login?next=/orders/${route.orderCode}/dispute`);
-  const { order } = await getOrderByCode(route.orderCode);
+  const supabase = await createSupabaseServerClient();
+  const { data: order } = await supabase
+    .from("orders")
+    .select("*, sellers(shop_name)")
+    .eq("order_code", route.orderCode)
+    .eq("buyer_id", user.id)
+    .maybeSingle();
   if (!order) notFound();
-  if (order.buyer_id !== user.id) redirect("/unauthorized");
   const disputeWindowOpen = order.dispute_window_closes_at ? new Date(order.dispute_window_closes_at).getTime() >= new Date().getTime() : false;
   const canDispute = !["cancelled", "refunded", "disputed"].includes(order.status) && (order.status !== "closed" || disputeWindowOpen);
   return (

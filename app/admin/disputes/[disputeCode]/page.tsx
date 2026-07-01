@@ -6,6 +6,7 @@ import { AdminShell } from "@/components/shells";
 import { Button, Card, Input, Select, StatusBadge, Stepper, Textarea, Timeline, TrustBadge } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Admin Dispute Review", description: "Review DukaSafe dispute evidence and issue a resolution." };
+export const dynamic = "force-dynamic";
 
 export default async function AdminDisputeReviewPage({ params }: { params: Promise<{ disputeCode: string }> }) {
   const route = await params;

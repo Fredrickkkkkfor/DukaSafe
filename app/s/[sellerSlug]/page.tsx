@@ -69,9 +69,16 @@ export default async function SellerProfilePage({ params }: { params: Promise<{ 
         <section id="products" className="space-y-4">
           <h2 className="text-3xl font-black text-forest">Active protected links</h2>
           <div className="grid gap-4 md:grid-cols-3">
-            {isActive && products.length ? products.map((product: { id: string; name: string; price: number; description?: string; currency?: string }) => (
+            {isActive && products.length ? products.map((product: { id: string; name: string; price: number; description?: string; currency?: string; product_image_url?: string | null }) => (
               <Card key={product.id}>
                 <Badge tone="green">Protected checkout</Badge>
+                {product.product_image_url && (
+                  <div
+                    className="mt-3 aspect-[4/3] rounded-3xl bg-sand bg-cover bg-center ring-1 ring-forest/10"
+                    style={{ backgroundImage: `url(${product.product_image_url})` }}
+                    aria-label={`${product.name} product image`}
+                  />
+                )}
                 <h3 className="mt-3 text-xl font-black text-forest">{product.name}</h3>
                 <p className="mt-2 text-sm text-charcoal/65">{product.description}</p>
                 <p className="mt-4 text-2xl font-black">KSh {Number(product.price).toLocaleString()}</p>
