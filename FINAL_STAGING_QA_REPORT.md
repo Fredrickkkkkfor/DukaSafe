@@ -122,3 +122,39 @@ Remaining limitations:
 Updated verdict:
 
 Ready for controlled staging only. The upload/dispute/admin route regressions are fixed, but production launch still requires deployed Netlify QA and physical mobile upload verification.
+
+## 18. Forensic UI / PRD alignment pass
+
+Date: 2026-07-01
+
+Audit created:
+
+- `docs/FORENSIC_UI_PRD_ALIGNMENT_AUDIT.md`
+
+What was wrong:
+
+- Seller screens mixed buyer/public top navigation with seller sidebar navigation.
+- Seller "Verification" label was ambiguous with admin verification.
+- Seller orders were not evidence-forward enough for payment confirmation and dispatch decisions.
+- Closed orders still implied monitoring instead of completion.
+- Create-link looked like a demo form because default values/test-like content were prefilled.
+- Create-link used a raw file input and low-contrast preview card.
+- Seller disputes empty state did not explain what evidence and deadlines would appear.
+- Complete-profile made role selection look too easy after profile completion.
+
+What was improved:
+
+- Role-aware navigation for public, buyer, seller, and admin contexts.
+- Seller nav now says "My Verification".
+- Seller orders now show proof review details, evidence state, buyer phone, last update, timeline preview, and clearer required action.
+- Seller order metrics are clickable filters.
+- Create-link now uses placeholders, a premium upload component, readable protected checkout preview, and recent-link actions.
+- Seller disputes now show status buckets, response guidance, evidence count, and stronger empty state.
+- Complete-profile now locks completed roles, blocks public admin role selection, and requires/explains phone for seller onboarding.
+- Added `/admin/disputes` queue.
+
+Current verdict:
+
+Ready for controlled staging only.
+
+This pass improves production polish and PRD alignment, but the app is still not production-launch ready until deployed Netlify QA, physical mobile QA, and full browser upload evidence flows pass.

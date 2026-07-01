@@ -121,7 +121,7 @@ export async function getSellerOrders() {
   if (!seller) return { user, profile, seller: null, orders: [] };
   const { data: orders } = await supabase
     .from("orders")
-    .select("*, products(name), payments(*), delivery_proofs(*), disputes(*)")
+    .select("*, products(name), payments(*), delivery_proofs(*), disputes(*), order_status_events(*)")
     .eq("seller_id", seller.id)
     .order("created_at", { ascending: false });
   return { user, profile, seller, orders: orders || [] };
@@ -173,6 +173,16 @@ export async function getAdminReports() {
     .select("*, sellers(shop_name, slug, trust_score, seller_status)")
     .order("created_at", { ascending: false })
     .limit(100);
+  return data || [];
+}
+
+export async function getAdminDisputes() {
+  const supabase = await createSupabaseServerClient();
+  const { data } = await supabase
+    .from("disputes")
+    .select("*, orders(order_code, item_name, status), sellers(shop_name, slug, trust_score, trust_badge), dispute_evidence(*)")
+    .order("created_at", { ascending: false })
+    .limit(80);
   return data || [];
 }
 

@@ -3,9 +3,10 @@ import { headers } from "next/headers";
 import { PackagePlus } from "lucide-react";
 import { createProductAction } from "@/lib/actions";
 import { getSellerWorkspace } from "@/lib/data";
-import { ActionPanel, Button, Card, Input, LinkButton, Select, Textarea, TrustBadge, formatStatus } from "@/components/ui";
+import { ActionPanel, Badge, Button, Card, Input, LinkButton, Select, StatusBadge, Textarea, TrustBadge, formatStatus } from "@/components/ui";
 import { SellerShell } from "@/components/shells";
 import { ShareLinkActions } from "@/components/share-link-actions";
+import { FileUpload } from "@/components/file-upload";
 
 export const metadata: Metadata = { title: "Create Protected Link", description: "Create a DukaSafe protected product checkout link." };
 
@@ -42,33 +43,42 @@ export default async function CreateLinkPage({ searchParams }: { searchParams: P
             />
           ) : (
             <form action={createProductAction} className="mt-6 grid gap-4 md:grid-cols-2">
-              <Input label="Product name" name="name" defaultValue="White tulle set" required />
-              <Input label="Price in KSh" name="price" type="number" defaultValue={1800} required />
-              <Textarea label="Description" name="description" required className="md:col-span-2" defaultValue="Elegant white tulle outfit with soft lining, perfect for events and content shoots." />
-              <Input label="Product image" name="product_image" type="file" accept="image/png,image/jpeg,image/webp" />
-              <Input label="Available sizes" name="available_sizes" defaultValue="S, M, L" />
-              <Input label="Delivery options" name="delivery_options" defaultValue="CBD pickup, Rider delivery, Nationwide courier" required className="md:col-span-2" />
-              <Textarea label="Delivery terms" name="delivery_terms" required className="md:col-span-2" defaultValue={seller.delivery_terms || "Same-day Nairobi CBD pickup and 24-48hr delivery within major towns."} />
-              <Textarea label="Refund policy" name="refund_policy" required className="md:col-span-2" defaultValue={seller.refund_policy || "Refunds reviewed within 24 hours when evidence supports the buyer claim."} />
+              <Input label="Product name" name="name" placeholder="Example: White tulle set" required />
+              <Input label="Price in KSh" name="price" type="number" min={1} placeholder="1800" required />
+              <Textarea label="Description" name="description" required className="md:col-span-2" placeholder="Describe condition, size, colour, included items, and what the buyer should confirm before paying." />
+              <div className="md:col-span-2">
+                <FileUpload name="product_image" label="Product image" hint="Clear product photo. PNG, JPG, or WEBP up to 8 MB." />
+              </div>
+              <Input label="Available sizes" name="available_sizes" placeholder="S, M, L or One size" />
+              <Input label="Delivery options" name="delivery_options" placeholder="CBD pickup, Rider delivery, Nationwide courier" required className="md:col-span-2" />
+              <Textarea label="Delivery terms" name="delivery_terms" required className="md:col-span-2" placeholder={seller.delivery_terms || "Example: Dispatch after payment proof is accepted. Nairobi same-day rider, parcels to Nakuru and Naivasha."} />
+              <Textarea label="Refund policy" name="refund_policy" required className="md:col-span-2" placeholder={seller.refund_policy || "Example: Evidence-based refund review within 48 hours for wrong, damaged, or counterfeit items."} />
               <Select label="Refund window" name="refund_window_hours" defaultValue="24">
                 <option value="0">No refund window</option>
                 <option value="24">24 hours</option>
                 <option value="48">48 hours</option>
                 <option value="72">72 hours</option>
               </Select>
-              <Textarea label="Special notes" name="special_notes" className="md:col-span-2" defaultValue="Confirm size before dispatch. Proof photos are captured before delivery." />
+              <Textarea label="Special notes" name="special_notes" className="md:col-span-2" placeholder="Example: Buyer should confirm size before dispatch. Seller will upload dispatch proof." />
               <Button type="submit" className="md:col-span-2"><PackagePlus className="h-4 w-4" /> Generate protected link</Button>
             </form>
           )}
         </Card>
         <aside className="space-y-5">
-          <Card className="bg-forest text-white">
-            <p className="text-sm font-bold text-white/70">Live checkout preview</p>
-            <h2 className="mt-3 text-2xl font-black">White tulle set</h2>
-            <p className="mt-2 text-3xl font-black">KSh 1,800</p>
-            <div className="mt-4 rounded-3xl bg-white/10 p-4">
-              <p className="font-black">{seller?.shop_name || "Your shop"}</p>
-              <div className="mt-2"><TrustBadge score={seller?.trust_score || 50} badge={seller?.trust_badge || "under_review"} /></div>
+          <Card className="border border-forest/10 bg-white/85">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-bold uppercase tracking-wide text-sage">Checkout preview</p>
+              <Badge tone="gold">Protected checkout</Badge>
+            </div>
+            <div className="mt-4 rounded-3xl bg-sand p-4">
+              <div className="grid h-36 place-items-center rounded-2xl bg-white/70 text-sm font-bold text-sage">Product image preview</div>
+              <h2 className="mt-4 text-2xl font-black text-forest">Your product name</h2>
+              <p className="mt-2 text-3xl font-black text-forest">KSh price</p>
+              <div className="mt-4 rounded-2xl bg-white/80 p-3">
+                <p className="font-black text-forest">{seller?.shop_name || "Your shop"}</p>
+                <div className="mt-2"><TrustBadge score={seller?.trust_score || 50} badge={seller?.trust_badge || "under_review"} /></div>
+              </div>
+              <div className="mt-4 rounded-2xl bg-forest px-4 py-3 text-center text-sm font-black text-white">Buyer opens protected checkout</div>
             </div>
           </Card>
           {query.created && (
@@ -80,8 +90,19 @@ export default async function CreateLinkPage({ searchParams }: { searchParams: P
           )}
           <Card>
             <h2 className="text-xl font-black text-forest">Recent links</h2>
-            <div className="mt-3 grid gap-2 text-sm">
-              {products.slice(0, 4).map((product: { id: string; name: string; price: number }) => <LinkButton key={product.id} href={`/checkout/${product.id}`} variant="ghost" className="justify-between">{product.name}<span>KSh {Number(product.price).toLocaleString()}</span></LinkButton>)}
+            <div className="mt-3 grid gap-3 text-sm">
+              {products.slice(0, 4).map((product: { id: string; name: string; price: number; status?: string; created_at?: string }) => (
+                <div key={product.id} className="rounded-2xl bg-sand p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-black text-forest">{product.name}</p>
+                      <p className="text-xs text-charcoal/60">KSh {Number(product.price).toLocaleString()} {product.created_at ? `- ${new Date(product.created_at).toLocaleDateString()}` : ""}</p>
+                    </div>
+                    <StatusBadge status={product.status || "active"} />
+                  </div>
+                  <ShareLinkActions path={`/checkout/${product.id}`} baseUrl={baseUrl} />
+                </div>
+              ))}
             </div>
           </Card>
         </aside>

@@ -199,9 +199,16 @@ export async function verifyOtpAction(formData: FormData) {
 
 export async function completeProfileAction(formData: FormData) {
   const { supabase, user } = await requireUser();
-  const parsed = profileSchema.parse(Object.fromEntries(formData));
-  const current = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  const role = current.data?.role === "admin" || current.data?.role === "operations" ? current.data.role : parsed.role;
+  const parsedResult = profileSchema.safeParse(Object.fromEntries(formData));
+  if (!parsedResult.success) {
+    const message = parsedResult.error.issues[0]?.message || "Check your profile details and try again.";
+    redirect(`/complete-profile?error=${encodeURIComponent(message)}`);
+  }
+  const parsed = parsedResult.data;
+  const current = await supabase.from("profiles").select("role,onboarding_completed").eq("id", user.id).maybeSingle();
+  const lockedRole = current.data?.onboarding_completed && current.data?.role ? current.data.role : null;
+  const role = current.data?.role === "admin" || current.data?.role === "operations" ? current.data.role : lockedRole || parsed.role;
+  if (role === "seller" && !parsed.phone) redirect("/complete-profile?error=Phone%20number%20is%20required%20for%20seller%20verification.");
   await supabase.from("profiles").update({
     full_name: parsed.full_name,
     phone: parsed.phone || null,

@@ -1,27 +1,54 @@
 import Link from "next/link";
-import { AlertTriangle, LayoutDashboard, PackageCheck, PackagePlus, Search, ShieldCheck, UserRoundCheck } from "lucide-react";
+import { AlertTriangle, FileSearch, LayoutDashboard, PackageCheck, PackagePlus, Search, ShieldCheck, UserRoundCheck, UsersRound } from "lucide-react";
 import { Logo, LinkButton, cn } from "@/components/ui";
 import { getCurrentUserAndProfile } from "@/lib/data";
 
 export async function PublicHeader() {
   const { user, profile } = await getCurrentUserAndProfile();
+  const role = profile?.role;
+  const navItems = role === "admin" || role === "operations"
+    ? [
+      { href: "/admin/verification", label: "Verification" },
+      { href: "/admin/orders", label: "Orders" },
+      { href: "/admin/disputes", label: "Disputes" },
+      { href: "/admin/reports", label: "Reports" },
+      { href: "/admin/verification", label: "Sellers" }
+    ]
+    : role === "seller"
+      ? [
+        { href: "/seller/dashboard", label: "Dashboard" },
+        { href: "/seller/orders", label: "Orders" },
+        { href: "/seller/create-link", label: "Create Link" },
+        { href: "/seller/disputes", label: "Disputes" },
+        { href: "/seller/register", label: "My Verification" },
+        { href: "/complete-profile", label: "Profile" }
+      ]
+      : user
+        ? [
+          { href: "/check", label: "Check Seller" },
+          { href: "/orders", label: "My Orders" },
+          { href: "/protection-charter", label: "Buyer Protection" },
+          { href: "/complete-profile", label: "Profile" }
+        ]
+        : [
+          { href: "/check", label: "Check a Seller" },
+          { href: "/#how", label: "How It Works" },
+          { href: "/protection-charter", label: "Buyer Protection" },
+          { href: "/seller/register", label: "Verify My Shop" }
+        ];
+  const homeHref = role === "admin" || role === "operations" ? "/admin/verification" : role === "seller" ? "/seller/dashboard" : user ? "/orders" : "/signup";
+  const homeLabel = role === "admin" || role === "operations" ? "Operations" : role === "seller" ? "Seller Home" : user ? "My Orders" : "Start";
   return (
     <header className="sticky top-0 z-40 border-b border-forest/10 bg-ivory/85 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <Logo />
         <nav className="hidden items-center gap-6 text-sm font-bold text-forest md:flex">
-          <Link href="/check">Check a Seller</Link>
-          <Link href="/#how">How It Works</Link>
-          <Link href="/protection-charter">Buyer Protection</Link>
-          <Link href="/orders">My Orders</Link>
-          <Link href="/seller/register">Verify My Shop</Link>
+          {navItems.map((item) => <Link key={`${item.href}-${item.label}`} href={item.href}>{item.label}</Link>)}
         </nav>
         <div className="flex items-center gap-2">
           {user ? (
             <>
-              <LinkButton href={profile?.role === "admin" || profile?.role === "operations" ? "/admin/verification" : profile?.role === "seller" ? "/seller/dashboard" : "/orders"} className="hidden sm:inline-flex">
-                Dashboard
-              </LinkButton>
+              <LinkButton href={homeHref} className="hidden sm:inline-flex">{homeLabel}</LinkButton>
               <LinkButton href="/logout" variant="ghost" className="hidden sm:inline-flex">Logout</LinkButton>
             </>
           ) : (
@@ -52,7 +79,7 @@ export async function SellerShell({ children }: { children: React.ReactNode }) {
             <SideLink href="/seller/orders" icon={<PackageCheck className="h-4 w-4" />}>Orders</SideLink>
             <SideLink href="/seller/create-link" icon={<PackagePlus className="h-4 w-4" />}>Create Link</SideLink>
             <SideLink href="/seller/disputes" icon={<AlertTriangle className="h-4 w-4" />}>Disputes</SideLink>
-            <SideLink href="/seller/register" icon={<UserRoundCheck className="h-4 w-4" />}>Verification</SideLink>
+            <SideLink href="/seller/register" icon={<UserRoundCheck className="h-4 w-4" />}>My Verification</SideLink>
             <SideLink href="/complete-profile" icon={<UserRoundCheck className="h-4 w-4" />}>Profile</SideLink>
             <SideLink href="/logout" icon={<ShieldCheck className="h-4 w-4" />}>Logout</SideLink>
           </nav>
@@ -80,7 +107,9 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
           <nav className="mt-6 space-y-2 text-sm font-bold">
             <SideLink href="/admin/verification" icon={<UserRoundCheck className="h-4 w-4" />}>Verification Queue</SideLink>
             <SideLink href="/admin/orders" icon={<LayoutDashboard className="h-4 w-4" />}>Orders & Transactions</SideLink>
+            <SideLink href="/admin/disputes" icon={<FileSearch className="h-4 w-4" />}>Disputes</SideLink>
             <SideLink href="/admin/reports" icon={<AlertTriangle className="h-4 w-4" />}>Reports</SideLink>
+            <SideLink href="/admin/verification" icon={<UsersRound className="h-4 w-4" />}>Sellers</SideLink>
             <SideLink href="/protection-charter" icon={<ShieldCheck className="h-4 w-4" />}>Policy</SideLink>
             <SideLink href="/logout" icon={<ShieldCheck className="h-4 w-4" />}>Logout</SideLink>
           </nav>
@@ -90,7 +119,7 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
       <MobileNav items={[
         { href: "/admin/verification", label: "Verify", icon: <UserRoundCheck className="h-5 w-5" /> },
         { href: "/admin/orders", label: "Orders", icon: <LayoutDashboard className="h-5 w-5" /> },
-        { href: "/admin/reports", label: "Reports", icon: <AlertTriangle className="h-5 w-5" /> }
+        { href: "/admin/disputes", label: "Cases", icon: <FileSearch className="h-5 w-5" /> }
       ]} />
     </div>
   );

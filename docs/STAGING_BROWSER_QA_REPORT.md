@@ -209,3 +209,51 @@ Still not fully completed:
 Post-fix verdict:
 
 Ready for controlled staging only. The runtime regressions found in upload/dispute/admin route checks were fixed, but production launch still needs deployed Netlify browser QA and physical phone upload checks.
+
+## 16. Forensic UI / PRD alignment pass
+
+Date: 2026-07-01
+
+Screenshots reviewed:
+
+- Seller orders
+- Seller create-link
+- Seller disputes
+- Complete profile
+
+Issues found:
+
+- Seller screens used the public/buyer top navigation, which made seller role context confusing.
+- Seller sidebar label "Verification" was ambiguous against admin verification.
+- Seller orders did not surface enough evidence before seller actions.
+- Closed orders showed "Required action: Monitor" instead of a completed/no-action state.
+- Large "Open Timeline" blocks looked blank rather than evidence-forward.
+- Create-link had production default values/test-looking content and a native file input.
+- Create-link preview had poor contrast and did not communicate protected checkout clearly.
+- Seller disputes empty state was too thin for a dispute/evidence product.
+- Complete-profile made role switching look casual and did not explain seller phone requirements.
+
+Fixes made:
+
+- Added role-aware header nav for public, buyer, seller, and admin users.
+- Renamed seller navigation to "My Verification".
+- Rebuilt seller order cards around evidence state, payment proof review, required action, last update, and timeline previews.
+- Added clickable seller order filters.
+- Replaced create-link defaults with placeholders.
+- Added DukaSafe `FileUpload` with preview and file-size feedback.
+- Reworked create-link checkout preview and recent-link action cards.
+- Expanded seller disputes with status metrics, response guidance, required action, evidence count, and richer empty state.
+- Locked completed profile roles from casual switching and required/explained phone for sellers.
+- Added `/admin/disputes` queue for admin dispute navigation.
+- Created `docs/FORENSIC_UI_PRD_ALIGNMENT_AUDIT.md`.
+
+Remaining blockers:
+
+- Full physical phone QA on `http://192.168.100.14:3000`.
+- Deployed Netlify staging URL QA.
+- Browser file-picker upload checks for all evidence buckets.
+- Rich signed private document/evidence previews in admin review pages.
+
+Forensic UI verdict:
+
+Ready for controlled staging only. PRD alignment improved materially, but production launch still requires deployed/mobile QA and full upload-flow verification.

@@ -78,3 +78,40 @@ Manual phone status:
 Current post-fix mobile verdict:
 
 Ready for controlled staging only. The specific upload/dispute regressions were fixed, but physical phone upload and viewport QA remain required before production launch.
+
+## Forensic UI / PRD alignment mobile notes
+
+Date: 2026-07-01
+
+Mobile-relevant fixes from the forensic pass:
+
+- Role-aware header reduces buyer/seller/admin confusion on small screens.
+- Seller bottom nav remains focused on dashboard, orders, create, and disputes.
+- Seller order cards now contain evidence status and timeline preview directly in the card, reducing mobile context switching.
+- Seller order table remains hidden behind mobile card rendering through `DataTable`.
+- Create-link now uses a tappable upload surface with preview instead of a raw browser file input.
+- Create-link form now uses placeholders instead of prefilled test content, reducing accidental test submissions on phone.
+- Seller disputes empty state now explains response deadlines and evidence expectations.
+- Complete-profile now explains why phone is required for seller onboarding and prevents casual role switching.
+
+Still required on physical phone:
+
+- Verify upload tap targets for product image, payment proof, delivery proof, seller documents, and dispute evidence.
+- Verify seller create-link form has no horizontal overflow at 320px, 360px, 390px, and 430px.
+- Verify seller order action cards do not become too tall or hide required CTAs.
+- Verify admin verification/dispute pages are usable on tablet and phone.
+- Save screenshots under `docs/staging-screenshots/forensic-ui-pass/` after a browser automation or manual capture pass.
+
+Forensic screenshot files saved from the automation pass:
+
+- `forensic-ui-pass/seller-orders-mobile-390.png`
+- `forensic-ui-pass/seller-create-link-mobile-390.png`
+- `forensic-ui-pass/seller-disputes-mobile-390.png`
+- `forensic-ui-pass/complete-profile-mobile-390.png`
+- `forensic-ui-pass/admin-disputes-mobile-390.png`
+- `forensic-ui-pass/seller-orders-desktop.png`
+- `forensic-ui-pass/seller-create-link-desktop.png`
+- `forensic-ui-pass/seller-disputes-desktop.png`
+- `forensic-ui-pass/complete-profile-desktop.png`
+
+Note: the first automation pass captured some protected seller routes from an unauthenticated session before role login could be stabilized. Treat these as layout/error-state evidence, not final seller-workflow screenshots. A physical phone or stable deployed-browser pass should recapture the same filenames while signed in as seller/admin.

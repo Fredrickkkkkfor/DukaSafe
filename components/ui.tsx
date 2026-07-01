@@ -10,12 +10,12 @@ export function cn(...inputs: ClassValue[]) {
 
 export function Logo({ compact = false }: { compact?: boolean }) {
   return (
-    <Link href="/" className="flex items-center gap-3">
+    <Link href="/" className="flex min-w-0 items-center gap-3">
       <span className="grid h-11 w-11 place-items-center rounded-2xl bg-forest text-sm font-black text-amber shadow-soft">DS</span>
       {!compact && (
-        <span className="leading-tight">
+        <span className="min-w-0 leading-tight">
           <span className="block text-lg font-black tracking-wide text-forest">DukaSafe</span>
-          <span className="block text-xs font-medium text-sage">Verified Commerce. Protected by Design.</span>
+          <span className="hidden text-xs font-medium text-sage sm:block">Verified Commerce. Protected by Design.</span>
         </span>
       )}
     </Link>
