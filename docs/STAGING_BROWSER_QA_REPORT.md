@@ -318,3 +318,68 @@ Remaining blockers:
 Buyer forensic verdict:
 
 Ready for controlled staging only. The buyer UI is now more trust-first and evidence-forward, but production launch still requires deployed staging, physical phone, and live upload-flow verification.
+
+## 18. Admin interface forensic pass
+
+Date: 2026-07-01
+
+Screenshots reviewed:
+
+- `/admin/verification`
+- `/admin/orders`
+- `/admin/disputes`
+- `/admin/reports`
+- `/protection-charter` while logged in as admin
+
+Audit created:
+
+- `docs/ADMIN_UI_FORENSIC_AUDIT.md`
+
+Screenshot evidence saved:
+
+- `docs/staging-screenshots/admin-ui-pass/admin-verification-reviewed.png`
+- `docs/staging-screenshots/admin-ui-pass/admin-orders-reviewed.png`
+- `docs/staging-screenshots/admin-ui-pass/admin-disputes-reviewed.png`
+- `docs/staging-screenshots/admin-ui-pass/admin-reports-reviewed.png`
+
+Problems found:
+
+- Admin navigation had Sellers and Policy labels without dedicated admin pages.
+- The top “Operations” CTA was ambiguous as a dashboard entry.
+- Verification queue metrics and empty state were not operational enough.
+- Seller applications did not show enough evidence/risk signals at a glance.
+- Admin orders were too table-basic and filters did not drive results.
+- Dispute queue used a confusing `0 files` display and lacked risk indicators.
+- Dispute detail did not frame buyer and seller evidence equally.
+- Seller safety reports had no admin status/update workflow.
+
+Fixes made:
+
+- Added `/admin`, `/admin/sellers`, and `/admin/policy`.
+- Updated admin top/sidebar navigation and renamed the header CTA to `Admin Dashboard`.
+- Added confirmation/loading behavior for high-impact admin actions.
+- Expanded verification queue metrics, application evidence cards, and recent review history.
+- Expanded orders into a filterable evidence register with payment proof, delivery proof, timeline, seller trust, and action-needed state.
+- Expanded disputes queue with text-only complaint handling, proof state, and risk flags.
+- Expanded dispute detail with buyer/seller positions, payment/delivery proof panels, evidence metadata, timeline, and order snapshot.
+- Added seller report status updates with admin notes and audit logging.
+- Added public charter support CTA and a dedicated admin policy document view.
+
+Admin browser/access notes:
+
+- Code-level guards remain on every `/admin/*` route.
+- New `/admin/sellers` and `/admin/policy` routes use admin/operations role checks.
+- No RLS policies were weakened.
+- Private evidence/document data is still displayed as protected metadata only; this pass does not introduce public raw private URLs.
+
+Remaining blockers:
+
+- Deployed Netlify staging URL has not been tested.
+- Fresh signed-in browser recapture from this automation session timed out, so the saved screenshot evidence is based on the user-provided LAN captures reviewed for the pass.
+- Admin action forms need final browser-click QA on deployed staging.
+- Signed private evidence/document preview thumbnails are still needed before production launch.
+- Physical tablet/mobile QA is still required for admin evidence pages.
+
+Admin forensic verdict:
+
+Ready for controlled staging only. Admin operations are more evidence-forward and action-clear, but production launch still depends on deployed staging QA and secure evidence-preview verification.

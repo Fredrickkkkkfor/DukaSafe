@@ -12,7 +12,8 @@ export async function PublicHeader() {
       { href: "/admin/orders", label: "Orders" },
       { href: "/admin/disputes", label: "Disputes" },
       { href: "/admin/reports", label: "Reports" },
-      { href: "/admin/verification", label: "Sellers" }
+      { href: "/admin/sellers", label: "Sellers" },
+      { href: "/admin/policy", label: "Policy" }
     ]
     : role === "seller"
       ? [
@@ -36,8 +37,8 @@ export async function PublicHeader() {
           { href: "/protection-charter", label: "Buyer Protection" },
           { href: "/seller/register", label: "Verify My Shop" }
         ];
-  const homeHref = role === "admin" || role === "operations" ? "/admin/verification" : role === "seller" ? "/seller/dashboard" : user ? "/orders" : "/signup";
-  const homeLabel = role === "admin" || role === "operations" ? "Operations" : role === "seller" ? "Seller Home" : user ? "My Orders" : "Start";
+  const homeHref = role === "admin" || role === "operations" ? "/admin/orders" : role === "seller" ? "/seller/dashboard" : user ? "/orders" : "/signup";
+  const homeLabel = role === "admin" || role === "operations" ? "Admin Dashboard" : role === "seller" ? "Seller Home" : user ? "My Orders" : "Start";
   return (
     <header className="sticky top-0 z-40 border-b border-forest/10 bg-ivory/85 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
@@ -109,8 +110,8 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
             <SideLink href="/admin/orders" icon={<LayoutDashboard className="h-4 w-4" />}>Orders & Transactions</SideLink>
             <SideLink href="/admin/disputes" icon={<FileSearch className="h-4 w-4" />}>Disputes</SideLink>
             <SideLink href="/admin/reports" icon={<AlertTriangle className="h-4 w-4" />}>Reports</SideLink>
-            <SideLink href="/admin/verification" icon={<UsersRound className="h-4 w-4" />}>Sellers</SideLink>
-            <SideLink href="/protection-charter" icon={<ShieldCheck className="h-4 w-4" />}>Policy</SideLink>
+            <SideLink href="/admin/sellers" icon={<UsersRound className="h-4 w-4" />}>Sellers</SideLink>
+            <SideLink href="/admin/policy" icon={<ShieldCheck className="h-4 w-4" />}>Policy Charter</SideLink>
             <SideLink href="/logout" icon={<ShieldCheck className="h-4 w-4" />}>Logout</SideLink>
           </nav>
         </aside>
@@ -119,7 +120,8 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
       <MobileNav items={[
         { href: "/admin/verification", label: "Verify", icon: <UserRoundCheck className="h-5 w-5" /> },
         { href: "/admin/orders", label: "Orders", icon: <LayoutDashboard className="h-5 w-5" /> },
-        { href: "/admin/disputes", label: "Cases", icon: <FileSearch className="h-5 w-5" /> }
+        { href: "/admin/disputes", label: "Cases", icon: <FileSearch className="h-5 w-5" /> },
+        { href: "/admin/reports", label: "Risk", icon: <AlertTriangle className="h-5 w-5" /> }
       ]} />
     </div>
   );

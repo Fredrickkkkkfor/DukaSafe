@@ -632,3 +632,18 @@ export async function suspendSellerAction(formData: FormData) {
   await supabase.from("admin_audit_logs").insert({ actor_id: user.id, action: "suspend_seller", entity_type: "sellers", entity_id: sellerId, notes: value(formData, "notes") || "Suspended during dispute review." });
   revalidatePath("/admin/orders");
 }
+
+export async function updateReportAction(formData: FormData) {
+  const { supabase, user } = await requireRole(["admin", "operations"]);
+  const reportId = value(formData, "report_id");
+  const status = value(formData, "status") || "under_admin_review";
+  const notes = value(formData, "admin_notes") || "Seller safety report reviewed by operations.";
+  await supabase.from("seller_reports").update({
+    status,
+    admin_notes: notes,
+    resolved_by: ["resolved", "dismissed"].includes(status) ? user.id : null,
+    resolved_at: ["resolved", "dismissed"].includes(status) ? new Date().toISOString() : null
+  }).eq("id", reportId);
+  await supabase.from("admin_audit_logs").insert({ actor_id: user.id, action: "other", entity_type: "seller_reports", entity_id: reportId, notes });
+  revalidatePath("/admin/reports");
+}

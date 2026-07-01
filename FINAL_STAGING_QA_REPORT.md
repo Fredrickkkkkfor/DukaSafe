@@ -215,3 +215,57 @@ Updated verdict:
 Ready for controlled staging only.
 
 The buyer interface is now materially more production-grade, trust-first, evidence-forward, and mobile-aware. It is still not production-launch ready until deployed staging, real mobile, buyer checkout, order tracking, dispute upload, seller approval, and admin review flows all pass through the browser.
+
+## 20. Admin interface forensic pass
+
+Date: 2026-07-01
+
+Audit created:
+
+- `docs/ADMIN_UI_FORENSIC_AUDIT.md`
+
+What was wrong:
+
+- Admin navigation was visually clean but still had unclear information architecture.
+- `Sellers` and `Policy` did not have dedicated admin pages.
+- The header CTA said `Operations`, which was less clear than a dashboard entry.
+- Verification queue empty state and metrics were too passive for operations.
+- Admin orders did not surface payment proof, delivery proof, timeline, risk, or action-needed state strongly enough.
+- Dispute queue showed `0 files` without explaining text-only complaints.
+- Dispute review detail did not present buyer and seller positions equally.
+- Seller safety reports lacked an operations workflow for status and notes.
+
+What was improved:
+
+- Added `/admin`, `/admin/sellers`, and `/admin/policy`.
+- Updated admin navigation and renamed the top CTA to `Admin Dashboard`.
+- Added confirmation/loading button behavior for high-impact admin actions.
+- Upgraded seller verification queue with better metrics, evidence signals, document metadata, recent review history, and confirmation actions.
+- Upgraded admin orders into a filterable evidence register.
+- Upgraded admin disputes queue with proof states and risk indicators.
+- Upgraded admin dispute detail with balanced evidence panels, payment proof, delivery proof, merged timeline, and order snapshot.
+- Upgraded reports with status updates, admin notes, and audit logging.
+- Added public charter Contact Support CTA and a dedicated admin policy document page.
+
+Checks completed:
+
+- `pnpm lint` passed after admin changes.
+- `pnpm typecheck` passed after admin changes.
+- Existing server-side admin/operations guards remain on all admin routes.
+- No RLS weakening was performed.
+- No private raw evidence/document public URLs were introduced.
+- Reviewed LAN admin screenshots were saved under `docs/staging-screenshots/admin-ui-pass/`.
+
+Remaining blockers:
+
+- Netlify staging has not been tested.
+- Fresh signed-in browser recapture from this automation session timed out; saved screenshot evidence comes from the user-provided LAN captures.
+- Physical tablet/phone admin QA is still required.
+- Admin action forms need final deployed-browser click testing.
+- Signed private evidence/document thumbnails are still a production hardening gap.
+
+Updated verdict:
+
+Ready for controlled staging only.
+
+The admin cockpit is now more production-grade and evidence-forward, but the app is still not production-launch ready until deployed staging, physical mobile/tablet, seller approval, dispute resolution, report update, and secure evidence-preview QA pass in the browser.

@@ -157,3 +157,37 @@ Still required on physical phone or deployed staging:
 Buyer mobile verdict:
 
 Improved and suitable for controlled staging. Not production-launch ready until deployed staging and physical phone upload QA pass.
+
+## Admin interface forensic mobile/tablet notes
+
+Date: 2026-07-01
+
+Admin mobile-relevant fixes completed:
+
+- Admin mobile bottom nav now includes Verification, Orders, Cases, and Risk.
+- `/admin/sellers` and `/admin/policy` were added so mobile admin navigation has real destinations.
+- Existing `DataTable` mobile card rendering now applies to richer admin orders, disputes, reports, sellers, and policy rows.
+- Admin verification application cards stack evidence signals, document metadata, and action forms on smaller screens.
+- Admin orders now show evidence and action-needed state in card rows instead of relying only on wide status columns.
+- Admin dispute detail panels are split into stackable buyer/seller/evidence/proof sections.
+- High-impact admin action buttons now show pending state and require confirmation.
+
+Still required on physical phone/tablet:
+
+- Verify `/admin/verification` with at least one pending application.
+- Verify `/admin/orders` filters and evidence cards at 320px, 390px, 768px, and 1024px.
+- Verify `/admin/disputes/[disputeCode]` evidence panels do not become too cramped.
+- Verify report status update forms are usable on phone.
+- Verify seller suspension/verification confirmations are usable and not hidden by browser UI.
+- Capture screenshots under `docs/staging-screenshots/admin-ui-pass/`.
+
+Saved screenshot evidence from reviewed LAN captures:
+
+- `admin-ui-pass/admin-verification-reviewed.png`
+- `admin-ui-pass/admin-orders-reviewed.png`
+- `admin-ui-pass/admin-disputes-reviewed.png`
+- `admin-ui-pass/admin-reports-reviewed.png`
+
+Admin mobile verdict:
+
+Improved and suitable for controlled staging. Not production-launch ready until deployed staging and physical tablet/phone admin QA pass with real evidence records.

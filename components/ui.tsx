@@ -50,8 +50,8 @@ export function LinkButton({ className, variant = "primary", href, ...props }: L
   return <Link href={href} className={cn(buttonBase, variants[variant], className)} {...props} />;
 }
 
-export function Card({ className, children }: { className?: string; children: React.ReactNode }) {
-  return <section className={cn("glass rounded-[28px] p-5 sm:p-6", className)}>{children}</section>;
+export function Card({ className, children, ...props }: React.HTMLAttributes<HTMLElement> & { children: React.ReactNode }) {
+  return <section className={cn("glass rounded-[28px] p-5 sm:p-6", className)} {...props}>{children}</section>;
 }
 
 export function Badge({ children, tone = "green" }: { children: React.ReactNode; tone?: "green" | "gold" | "sand" | "red" | "gray" }) {

@@ -48,6 +48,7 @@ export default async function ProtectionCharterPage() {
             <LinkButton href="/orders" variant="secondary">View My Orders</LinkButton>
             <LinkButton href="/check" variant="secondary">Start Protected Checkout</LinkButton>
             <LinkButton href="/seller/register" variant="secondary">Verify My Shop</LinkButton>
+            <LinkButton href="/report-concern" variant="secondary">Contact Support</LinkButton>
           </div>
         </Card>
       </PageShell>

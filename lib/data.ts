@@ -160,9 +160,27 @@ export async function getAdminVerificationQueue() {
   return data || [];
 }
 
+export async function getAdminSellers() {
+  const supabase = await createSupabaseServerClient();
+  const { data } = await supabase
+    .from("sellers")
+    .select("*, seller_documents(*), products(id,status), orders(id,status), disputes(id,status)")
+    .order("updated_at", { ascending: false })
+    .limit(120);
+  return data || [];
+}
+
+export async function getAdminAuditLogs(entityType?: string) {
+  const supabase = await createSupabaseServerClient();
+  let query = supabase.from("admin_audit_logs").select("*").order("created_at", { ascending: false }).limit(50);
+  if (entityType) query = query.eq("entity_type", entityType);
+  const { data } = await query;
+  return data || [];
+}
+
 export async function getAdminOrders() {
   const supabase = await createSupabaseServerClient();
-  const { data } = await supabase.from("orders").select("*, sellers(shop_name, slug), payments(*), delivery_proofs(*), disputes(*)").order("created_at", { ascending: false }).limit(80);
+  const { data } = await supabase.from("orders").select("*, sellers(shop_name, slug, trust_score, trust_badge, seller_status), payments(*), delivery_proofs(*), disputes(*), order_status_events(*)").order("created_at", { ascending: false }).limit(80);
   return data || [];
 }
 
@@ -180,7 +198,7 @@ export async function getAdminDisputes() {
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase
     .from("disputes")
-    .select("*, orders(order_code, item_name, status), sellers(shop_name, slug, trust_score, trust_badge), dispute_evidence(*)")
+    .select("*, orders(*, payments(*), delivery_proofs(*), order_status_events(*)), sellers(shop_name, slug, trust_score, trust_badge, disputed_orders_count, seller_status), dispute_evidence(*)")
     .order("created_at", { ascending: false })
     .limit(80);
   return data || [];
@@ -188,8 +206,14 @@ export async function getAdminDisputes() {
 
 export async function getDisputeByCode(disputeCode: string) {
   const supabase = await createSupabaseServerClient();
-  const { data: dispute } = await supabase.from("disputes").select("*, orders(*), sellers(*), dispute_evidence(*)").eq("dispute_code", disputeCode).maybeSingle();
+  const { data: dispute } = await supabase.from("disputes").select("*, orders(*, payments(*), delivery_proofs(*), order_status_events(*)), sellers(*), dispute_evidence(*)").eq("dispute_code", disputeCode).maybeSingle();
   return dispute;
+}
+
+export async function getAdminPolicyDocuments() {
+  const supabase = await createSupabaseServerClient();
+  const { data } = await supabase.from("policy_documents").select("*").order("updated_at", { ascending: false });
+  return data || [];
 }
 
 export async function getPolicy(slug: string) {
