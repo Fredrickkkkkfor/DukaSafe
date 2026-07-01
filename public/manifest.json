@@ -1,0 +1,16 @@
+{
+  "name": "DukaSafe",
+  "short_name": "DukaSafe",
+  "description": "Verified checkout and buyer-seller protection for Kenyan social commerce.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAFAF7",
+  "theme_color": "#1A3C34",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ]
+}

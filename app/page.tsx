@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { ArrowRight, BadgeCheck, Clock3, CreditCard, MessageCircle, ShieldCheck, ShoppingBag, Star, UsersRound } from "lucide-react";
 import { Badge, Card, LinkButton, MetricCard, StickyMobileCTA, TrustBadge } from "@/components/ui";
 import { PageShell, PublicHeader } from "@/components/shells";
-import { demoSeller } from "@/lib/demo";
 
 export const metadata: Metadata = {
   title: "Buy safely. Sell confidently.",
@@ -90,7 +89,7 @@ export default function LandingPage() {
               <div className="flex gap-1 text-amber">{Array.from({ length: 5 }).map((_, j) => <Star key={j} className="h-4 w-4 fill-current" />)}</div>
               <p className="mt-4 text-sm leading-6 text-charcoal/75">&ldquo;{quote}&rdquo;</p>
               <p className="mt-4 font-black text-forest">{i === 0 ? "Aisha N." : i === 1 ? "Brian M." : "Mercy W."}</p>
-              <p className="text-xs text-sage">{i === 0 ? demoSeller.category : "Kenyan social seller"}</p>
+              <p className="text-xs text-sage">{i === 0 ? "Fashion & Imported Clothing" : "Kenyan social seller"}</p>
             </Card>
           ))}
         </section>

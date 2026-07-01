@@ -565,7 +565,7 @@ export async function requestMoreInfoAction(formData: FormData) {
     verification_status: "needs_more_info",
     rejection_reason: reason
   }).eq("id", sellerId);
-  await supabase.from("admin_audit_logs").insert({ actor_id: user.id, action: "request_seller_more_info", entity_type: "sellers", entity_id: sellerId, notes: reason });
+  await supabase.from("admin_audit_logs").insert({ actor_id: user.id, action: "request_more_info", entity_type: "sellers", entity_id: sellerId, notes: reason });
   revalidatePath("/admin/verification");
 }
 

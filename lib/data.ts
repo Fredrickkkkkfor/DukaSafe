@@ -1,6 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { demoEvents, demoOrder, demoProducts, demoReviews, demoSeller } from "@/lib/demo";
-import { isSupabaseConfigured } from "@/lib/env";
+import { isDemoMode, isSupabaseConfigured } from "@/lib/env";
 
 export async function getCurrentUserAndProfile() {
   if (!isSupabaseConfigured) return { user: null, profile: null };
@@ -29,7 +29,8 @@ export async function getRoleHome(profile: { role?: string; is_active?: boolean 
 }
 
 export async function getSellerBySlug(slug: string) {
-  if (slug === demoSeller.slug || !isSupabaseConfigured) return { seller: demoSeller, products: demoProducts, reviews: demoReviews };
+  if (isDemoMode && slug === demoSeller.slug) return { seller: demoSeller, products: demoProducts, reviews: demoReviews };
+  if (!isSupabaseConfigured) return { seller: null, products: [], reviews: [] };
   const supabase = await createSupabaseServerClient();
   const { data: seller } = await supabase.from("sellers").select("*").eq("slug", slug).maybeSingle();
   if (!seller) return { seller: null, products: [], reviews: [] };
@@ -43,9 +44,10 @@ export async function getSellerBySlug(slug: string) {
 export async function searchSellers(query: string) {
   const q = query.trim();
   if (!q) return [];
-  if (!isSupabaseConfigured) {
+  if (isDemoMode) {
     return [demoSeller].filter((seller) => `${seller.shop_name} ${seller.slug} ${seller.whatsapp_number}`.toLowerCase().includes(q.toLowerCase().replace("https://", "")));
   }
+  if (!isSupabaseConfigured) return [];
   const supabase = await createSupabaseServerClient();
   const cleaned = q.replace(/^https?:\/\//, "").replace(/^www\./, "");
   const { data } = await supabase
@@ -57,7 +59,8 @@ export async function searchSellers(query: string) {
 }
 
 export async function getProductForCheckout(productId: string) {
-  if (productId === "demo-product" || !isSupabaseConfigured) return { product: demoProducts[0], seller: demoSeller };
+  if (isDemoMode && productId === "demo-product") return { product: demoProducts[0], seller: demoSeller };
+  if (!isSupabaseConfigured) return { product: null, seller: null };
   const supabase = await createSupabaseServerClient();
   const { data: product } = await supabase.from("products").select("*, sellers(*)").eq("id", productId).maybeSingle();
   if (!product) return { product: null, seller: null };
@@ -65,7 +68,8 @@ export async function getProductForCheckout(productId: string) {
 }
 
 export async function getOrderByCode(orderCode: string) {
-  if (orderCode === demoOrder.order_code || !isSupabaseConfigured) return { order: demoOrder, events: demoEvents, payments: [], deliveryProofs: [], disputes: [] };
+  if (isDemoMode && orderCode === demoOrder.order_code) return { order: demoOrder, events: demoEvents, payments: [], deliveryProofs: [], disputes: [] };
+  if (!isSupabaseConfigured) return { order: null, events: [], payments: [], deliveryProofs: [], disputes: [] };
   const supabase = await createSupabaseServerClient();
   const { data: order } = await supabase.from("orders").select("*, sellers(*), products(*)").eq("order_code", orderCode).maybeSingle();
   if (!order) return { order: null, events: [], payments: [], deliveryProofs: [], disputes: [] };
@@ -80,7 +84,8 @@ export async function getOrderByCode(orderCode: string) {
 
 export async function getBuyerOrders() {
   const { user, profile } = await getCurrentUserAndProfile();
-  if (!user || !isSupabaseConfigured) return { user, profile, orders: [demoOrder] };
+  if (isDemoMode) return { user, profile, orders: [demoOrder] };
+  if (!user || !isSupabaseConfigured) return { user, profile, orders: [] };
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase
     .from("orders")
@@ -107,7 +112,8 @@ export async function getSellerWorkspace() {
 
 export async function getSellerOrders() {
   const { user, profile } = await getCurrentUserAndProfile();
-  if (!user || !isSupabaseConfigured) return { user, profile, seller: demoSeller, orders: [demoOrder] };
+  if (isDemoMode) return { user, profile, seller: demoSeller, orders: [demoOrder] };
+  if (!user || !isSupabaseConfigured) return { user, profile, seller: null, orders: [] };
   const supabase = await createSupabaseServerClient();
   const { data: seller } = await supabase.from("sellers").select("*").eq("user_id", user.id).maybeSingle();
   if (!seller) return { user, profile, seller: null, orders: [] };
@@ -121,7 +127,8 @@ export async function getSellerOrders() {
 
 export async function getSellerDisputes() {
   const { user, profile } = await getCurrentUserAndProfile();
-  if (!user || !isSupabaseConfigured) return { user, profile, seller: demoSeller, disputes: [] };
+  if (isDemoMode) return { user, profile, seller: demoSeller, disputes: [] };
+  if (!user || !isSupabaseConfigured) return { user, profile, seller: null, disputes: [] };
   const supabase = await createSupabaseServerClient();
   const { data: seller } = await supabase.from("sellers").select("*").eq("user_id", user.id).maybeSingle();
   if (!seller) return { user, profile, seller: null, disputes: [] };

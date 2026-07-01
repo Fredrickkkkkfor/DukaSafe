@@ -1064,10 +1064,10 @@ commit;
       Do NOT paste service tokens into SQL files.
       Use a local .env file instead:
 
-      SUPABASE_ACCESS_TOKEN=your-token-here
-      NEXT_PUBLIC_SUPABASE_URL=your-project-url
-      NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-      SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+      SUPABASE_ACCESS_TOKEN
+      NEXT_PUBLIC_SUPABASE_URL
+      NEXT_PUBLIC_SUPABASE_ANON_KEY
+      SUPABASE_SERVICE_ROLE_KEY
 
    4. MVP payment mode:
       Use payment_method = 'mpesa_manual' and upload payment proof screenshots.
