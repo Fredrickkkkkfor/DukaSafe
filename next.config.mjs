@@ -1,10 +1,16 @@
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { networkInterfaces } from "node:os";
 
 const root = dirname(fileURLToPath(import.meta.url));
+const lanDevOrigins = Object.values(networkInterfaces())
+  .flat()
+  .filter((networkInterface) => networkInterface?.family === "IPv4" && !networkInterface.internal)
+  .map((networkInterface) => networkInterface.address);
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  allowedDevOrigins: lanDevOrigins,
   turbopack: {
     root
   },
