@@ -6,6 +6,9 @@
   NODE_VERSION = "22"
   PNPM_VERSION = "11.7.0"
 
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
 [dev]
   command = "pnpm dev"
   port = 3000
